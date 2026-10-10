@@ -1,46 +1,54 @@
-﻿# Topologia wdrożenia (poziom 4)
+# Topologia wdrożenia (poziom 4)
 
 ## Przegląd
 
 Diagram wdrożenia przedstawia fizyczną topologię uruchomieniową platformy na lokalnej stacji roboczej wyposażonej w kartę graficzną NVIDIA.
 
 ```mermaid
-C4Deployment
-    title Diagram wdrożenia - lokalna topologia sprzętowa
+flowchart TB
+    classDef hardware fill:#2d3748,stroke:#1a202c,color:#fff,stroke-width:2px;
+    classDef process fill:#1168bd,stroke:#0b4884,color:#fff,stroke-width:2px;
+    classDef runtime fill:#4361ee,stroke:#3a0ca3,color:#fff,stroke-width:2px;
+    classDef storage fill:#5a6268,stroke:#343a40,color:#fff,stroke-width:2px;
+    classDef client fill:#08427b,stroke:#073b6f,color:#fff,stroke-width:2px;
 
-    Deployment_Node(workstation, "Stacja robocza inżyniera", "Windows 11 x64, 12 rdzeni CPU, 32 GB RAM") {
-        Deployment_Node(gpuHardware, "Karta graficzna", "NVIDIA GeForce RTX 3060 12 GB VRAM") {
-            Container(cudaCores, "Rdzenie CUDA", "Środowisko CUDA 12.x", "Wykonuje operacje tensorowe i obliczenia macierzowe modeli neuronowych.")
-        }
+    subgraph Workstation [" 🖥️ Stacja robocza inżyniera (Windows 11 x64, 12 rdzeni CPU, 32 GB RAM) "]
+        direction TB
 
-        Deployment_Node(pyRuntime, "Środowisko uruchomieniowe Python", "Python 3.14.x x64") {
-            Container(fastapiProc, "Proces FastAPI / Uvicorn", "Główny proces / port 7860", "Obsługuje serwer aplikacji, routery GUI, wątki robocze i strumień SSE.")
-            Container(forwarderProc, "Proces forwardera TCP", "Proces potomny / port 80", "Przekazuje asynchronicznie ruch z portu 80 na 7860 przez pętlę zwrotną.")
-            Container(pytorchEngine, "Silnik PyTorch", "Biblioteki DLL w procesie", "Ładuje wagi modeli OmniVoice/Chatterbox do pamięci karty graficznej.")
-        }
+        subgraph ClientGroup [" Środowisko klienta (Chromium) "]
+            browserUi["🌐 <b>Kontekst przeglądarki</b><br/><i>[Google Chrome / Microsoft Edge]</i><br/><br/>Odtwarzacz audio, kontrolery UI i renderowanie DOM."]:::client
+        end
 
-        Deployment_Node(cppRuntime, "Środowisko llama.cpp", "Wersja binarna Win-x86_64 AVX2 CUDA 12") {
-            Container(llamaProc, "Proces llama-server.exe", "Proces potomny / port 1234", "Hostuje model Gemma 4 12B GGUF z projektorem wizyjnym BF16.")
-        }
+        subgraph HostNetworking [" Warstwa sieciowa i serwer aplikacji "]
+            forwarderProc["🔀 <b>Proces forwardera TCP</b><br/><i>[Python 3.14 / asyncio / Port 80]</i><br/><br/>Asynchroniczny nasłuch i przekierowanie do portu 7860."]:::process
+            fastapiProc["⚡ <b>Główny proces FastAPI / Uvicorn</b><br/><i>[Python 3.14 x64 / Port 7860]</i><br/><br/>Serwer REST API, routery GUI, wątki robocze i telemetria SSE."]:::process
+        end
 
-        Deployment_Node(storageDisk, "Dysk półprzewodnikowy NVMe SSD", "System plików NTFS") {
-            ContainerDb(projectData, "Magazyn danych projektu", "./data", "Zawiera katalogi books/, audio_book/, cache/ oraz plik konfiguracyjny .env.")
-        }
+        subgraph PythonEnv [" Środowisko Pythona i biblioteki TTS "]
+            pytorchEngine["🎙️ <b>Wewnątrzprocesowy silnik PyTorch</b><br/><i>[DLL w pamięci procesu FastAPI]</i><br/><br/>Ładuje wagi modeli OmniVoice/Chatterbox do VRAM."]:::runtime
+        end
 
-        Deployment_Node(clientBrowser, "Środowisko przeglądarki", "Google Chrome / Microsoft Edge") {
-            Container(browserUi, "Kontekst przeglądarki", "Silnik Chromium", "Wykonuje odtwarzacz audio, kontrolery UI i renderuje elementy DOM.")
-        }
-    }
+        subgraph LlamaEnv [" Środowisko llama.cpp (Proces potomny) "]
+            llamaProc["🧠 <b>Proces llama-server.exe</b><br/><i>[Binarny Win-x86_64 AVX2 CUDA 12 / Port 1234]</i><br/><br/>Hostuje model Gemma 4 12B GGUF z projektorem mmproj."]:::process
+        end
 
-    Rel(browserUi, forwarderProc, "Wysyła żądania bez podawania portu", "HTTP / port 80")
-    Rel(forwarderProc, fastapiProc, "Przekierowuje pakiety TCP", "Pętla zwrotna TCP / port 7860")
-    Rel(browserUi, fastapiProc, "Pobiera zasoby statyczne, wywołuje API i nasłuchuje SSE", "HTTP REST / port 7860")
-    Rel(fastapiProc, llamaProc, "Zarządza procesem potomnym i wysyła zapytania inferencji", "HTTP / port 1234")
-    Rel(fastapiProc, pytorchEngine, "Wywołuje syntezę mowy przez API Pythona", "Wywołanie wewnątrzprocesowe")
-    Rel(pytorchEngine, cudaCores, "Alokuje tensory w pamięci VRAM (~2.5-3.5 GB)", "CUDA API")
-    Rel(llamaProc, cudaCores, "Zajmuje warstwy w pamięci VRAM (~7.5-8.5 GB)", "Sterownik CUDA API")
-    Rel(fastapiProc, projectData, "Zapisuje pliki WAV, dokumenty Markdown i metadane JSON", "Win32 operacje wejścia/wyjścia")
+        subgraph HardwareGroup [" Fizyczne zasoby sprzętowe i pamięć masowa "]
+            direction LR
+            cudaCores["⚡ <b>Karta graficzna NVIDIA RTX 3060 (12 GB VRAM)</b><br/><i>[Środowisko CUDA 12.x / Rdzenie Tensor]</i><br/><br/>Współdzielona pamięć: inferencja VLM (~8 GB) lub synteza TTS (~3 GB)."]:::hardware
+            projectData[("💾 <b>Dysk NVMe SSD (System plików NTFS)</b><br/><i>[Lokalny magazyn ./data]</i><br/><br/>Katalogi books/, audio_book/, cache/ oraz plik .env.")]:::storage
+        end
+    end
 
+    browserUi -->|"Żądanie bez numeru portu<br/><b>[HTTP / Port 80]</b>"| forwarderProc
+    browserUi -->|"Pobieranie zasobów i API<br/><b>[HTTP REST / SSE / Port 7860]</b>"| fastapiProc
+    forwarderProc -->|"Pętla zwrotna TCP<br/><b>[127.0.0.1:7860]</b>"| fastapiProc
+
+    fastapiProc -->|"Zarządzanie procesem i zapytania<br/><b>[Subprocess / HTTP 1234]</b>"| llamaProc
+    fastapiProc -->|"Wywołanie syntezy mowy<br/><b>[In-Process Call]</b>"| pytorchEngine
+    fastapiProc -->|"Zapis plików WAV, Markdown i JSON<br/><b>[Win32 File I/O]</b>"| projectData
+
+    pytorchEngine -->|"Alokuje tensory TTS w VRAM (~3 GB)<br/><b>[CUDA API]</b>"| cudaCores
+    llamaProc -->|"Zajmuje pamięć VRAM (~8 GB)<br/><b>[CUDA Driver API]</b>"| cudaCores
 ```
 
 ## Alokacja procesów i zasobów

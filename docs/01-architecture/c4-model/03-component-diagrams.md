@@ -1,63 +1,73 @@
-﻿# Component diagrams (level 3)
+# Component diagrams (level 3)
 
 ## Overview
 
 The component view details the internal decomposition of the application core, demonstrating strict compliance with clean architecture layer boundaries.
 
 ```mermaid
-C4Component
-    title Component Diagram - Application Core & Interface Adapters
+flowchart TB
+    classDef adapter fill:#08427b,stroke:#073b6f,color:#fff,stroke-width:2px;
+    classDef usecase fill:#1168bd,stroke:#0b4884,color:#fff,stroke-width:2px;
+    classDef domain fill:#1f7a8c,stroke:#14525e,color:#fff,stroke-width:2px;
+    classDef gateway fill:#5a6268,stroke:#343a40,color:#fff,stroke-width:2px;
 
-    Container_Boundary(adapters, "Interface Adapters Layer") {
-        Component(guiRouters, "FastAPI Routers", "converter, generator, player, studio, notes, web", "Maps HTTP payloads to application command DTOs.")
-        Component(cliMain, "CLI Entry Point", "lektor.adapters.cli.main", "Parses command line arguments and drives use cases.")
-        Component(bookRepo, "FileSystemBookRepository", "BookRepositoryProtocol", "Manages book metadata, paths, scans, and page discovery.")
-        Component(pageRepo, "FileSystemPageRepository", "PageRepositoryProtocol", "Performs filesystem read and write operations for Markdown and states.")
-        Component(audioCleaner, "SileroAudioCleaner", "AudioCleanerProtocol", "Applies high-pass Butterworth filtering, Silero VAD boundary trimming, and cosine fades.")
-        Component(audioStitcher, "NumpyAudioStitcher", "AudioStitcherProtocol", "Concatenates PCM arrays, normalizes volume, and saves WAV files.")
-        Component(universalTTS, "UniversalTTSEngine", "TTSEngineProtocol", "Coordinates OmniVoice and Chatterbox backends.")
-        Component(visionAdapter, "UniversalVisionTranslatorAdapter", "VisionTranslatorProtocol", "Encodes images, calls OpenAI-compatible API, and creates domain pages.")
-        Component(pdfSplitter, "PyMuPdfSplitterAdapter", "PdfSplitterProtocol", "Renders PDF pages to 300 DPI JPEG bitmaps.")
-        Component(arbiter, "DynamicVramModelArbiter", "AIModelArbiterProtocol", "Enforces preemption between vision server and PyTorch TTS.")
-    }
+    subgraph DrivingAdapters [" 🌐 Ingress Adapters (Driving / Entrypoints) "]
+        direction LR
+        guiRouters["⚡ <b>FastAPI Routers</b><br/><i>[Web GUI REST / SSE DTOs]</i>"]:::adapter
+        cliMain["💻 <b>CLI Entry Point</b><br/><i>[lektor.adapters.cli.main]</i>"]:::adapter
+    end
 
-    Container_Boundary(app, "Application Use Cases Layer") {
-        Component(ucConvert, "ConvertPdfBookUseCase", "Orchestrator", "Coordinates PDF rendering, AI vision translation, validation, and progress broadcasting.")
-        Component(ucSynthPage, "SynthesizePageUseCase", "Orchestrator", "Coordinates normalization, TTS generation, audio stitching, and state persistence.")
-        Component(ucBatchSynth, "BatchSynthesisUseCase", "Batch Runner", "Iterates through book pages and executes page synthesis use case.")
-        Component(ucStatus, "GetBookStatusUseCase", "Status Aggregator", "Aggregates overall completion metrics, durations, and page statuses.")
-    }
+    subgraph AppLayer [" ⚙️ Application Use Cases Layer "]
+        direction LR
+        ucConvert["📄 <b>ConvertPdfBookUseCase</b><br/><i>[PDF Conversion Orchestrator]</i>"]:::usecase
+        ucSynthPage["🎙️ <b>SynthesizePageUseCase</b><br/><i>[Page Synthesis Orchestrator]</i>"]:::usecase
+        ucBatchSynth["📦 <b>BatchSynthesisUseCase</b><br/><i>[Batch Runner]</i>"]:::usecase
+        ucStatus["📊 <b>GetBookStatusUseCase</b><br/><i>[Status Aggregator]</i>"]:::usecase
+    end
 
-    Container_Boundary(domain, "Domain Entities Layer") {
-        Component(normalizer, "TextNormalizationService", "Domain Service", "Splits text, normalizes numbers, translates Go syntax, and applies phonetics.")
-        Component(validator, "MarkdownPageValidationService", "Domain Service", "Validates Markdown integrity, code blocks, and Mermaid diagrams.")
-        Component(glossary, "TechnicalGlossaryService", "Domain Service", "Protects Cloud Native terminology during LLM processing.")
-        Component(entities, "Domain Models & VOs", "Book, ConversionJob, SpeechSegment, DataPaths", "Immutable domain state, invariants, and state machines.")
-    }
+    subgraph DomainLayer [" 🏛️ Domain Entities & Rules Layer "]
+        direction TB
+        normalizer["🔤 <b>TextNormalizationService</b><br/><i>[Text normalization & Go phonetics]</i>"]:::domain
+        validator["🛡️ <b>MarkdownPageValidationService</b><br/><i>[Integrity validation & Mermaid checks]</i>"]:::domain
+        glossary["📚 <b>TechnicalGlossaryService</b><br/><i>[Cloud Native term protection]</i>"]:::domain
+        entities["🧱 <b>Domain Models & VOs</b><br/><i>[Book, ConversionJob, SpeechSegment, DataPaths]</i>"]:::domain
+    end
 
-    Rel(guiRouters, ucConvert, "Invokes via command DTO")
-    Rel(guiRouters, ucSynthPage, "Invokes via command DTO")
-    Rel(guiRouters, ucStatus, "Invokes via query DTO")
-    Rel(cliMain, ucSynthPage, "Invokes via command DTO")
-    Rel(cliMain, ucBatchSynth, "Invokes via command DTO")
+    subgraph DrivenAdapters [" 🔌 Infrastructure & Driven Adapters "]
+        direction TB
+        pageRepo["💾 <b>FileSystemPageRepository</b><br/><i>[PageRepositoryProtocol]</i>"]:::gateway
+        bookRepo["📁 <b>FileSystemBookRepository</b><br/><i>[BookRepositoryProtocol]</i>"]:::gateway
+        universalTTS["🗣️ <b>UniversalTTSEngine</b><br/><i>[TTSEngineProtocol: OmniVoice / Chatterbox]</i>"]:::gateway
+        audioCleaner["🧹 <b>SileroAudioCleaner</b><br/><i>[AudioCleanerProtocol: VAD & filters]</i>"]:::gateway
+        audioStitcher["🪡 <b>NumpyAudioStitcher</b><br/><i>[AudioStitcherProtocol: WAV normalization]</i>"]:::gateway
+        visionAdapter["👁️ <b>UniversalVisionTranslatorAdapter</b><br/><i>[VisionTranslatorProtocol: OpenAI API]</i>"]:::gateway
+        pdfSplitter["📑 <b>PyMuPdfSplitterAdapter</b><br/><i>[PdfSplitterProtocol: 300 DPI JPEG]</i>"]:::gateway
+        arbiter["⚖️ <b>DynamicVramModelArbiter</b><br/><i>[AIModelArbiterProtocol: VRAM preemption]</i>"]:::gateway
+    end
 
-    Rel(ucConvert, pdfSplitter, "Splits document")
-    Rel(ucConvert, visionAdapter, "Translates page bitmap")
-    Rel(ucConvert, arbiter, "Acquires SLOT_VISION")
-    Rel(ucConvert, pageRepo, "Saves Markdown")
-    Rel(ucConvert, validator, "Validates integrity")
-    Rel(ucConvert, glossary, "Protects technical terms")
+    guiRouters -->|"Invokes via DTO"| ucConvert
+    guiRouters -->|"Invokes via DTO"| ucSynthPage
+    guiRouters -->|"Invokes via DTO"| ucStatus
+    cliMain -->|"Invokes via DTO"| ucSynthPage
+    cliMain -->|"Invokes via DTO"| ucBatchSynth
+    ucBatchSynth -->|"Loops over pages"| ucSynthPage
 
-    Rel(ucSynthPage, normalizer, "Produces speech segments")
-    Rel(ucSynthPage, universalTTS, "Synthesizes audio")
-    Rel(ucSynthPage, audioStitcher, "Stitches segments")
-    Rel(ucSynthPage, pageRepo, "Reads and writes page state")
-    Rel(ucSynthPage, arbiter, "Acquires SLOT_AUDIO_TTS")
+    ucConvert -->|"Splits PDF pages"| pdfSplitter
+    ucConvert -->|"Translates scans"| visionAdapter
+    ucConvert -->|"Preempts GPU"| arbiter
+    ucConvert -->|"Saves pages"| pageRepo
+    ucConvert -->|"Validates content"| validator
+    ucConvert -->|"Protects terms"| glossary
 
-    Rel(universalTTS, audioCleaner, "Cleans audio tails")
-    Rel(normalizer, entities, "Builds SpeechSegment instances")
-    Rel(bookRepo, entities, "Builds Book entities and DataPaths")
+    ucSynthPage -->|"Segments speech"| normalizer
+    ucSynthPage -->|"Synthesizes audio"| universalTTS
+    ucSynthPage -->|"Stitches WAV buffers"| audioStitcher
+    ucSynthPage -->|"Reads/writes state"| pageRepo
+    ucSynthPage -->|"Leases VRAM"| arbiter
 
+    universalTTS -->|"Cleans speech audio"| audioCleaner
+    normalizer -->|"Constructs instances"| entities
+    bookRepo -->|"Builds models"| entities
 ```
 
 ## Layer boundary analysis

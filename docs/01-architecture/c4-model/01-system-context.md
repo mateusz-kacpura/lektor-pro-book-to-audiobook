@@ -1,26 +1,30 @@
-﻿# System context (level 1)
+# System context (level 1)
 
 ## Overview
 
 The system context diagram shows the high-level boundary of the Lektor Pro application, the primary users, and external integrations. Lektor Pro operates locally on workstation hardware, providing end-to-end processing from raw technical book scans to synthesized speech audio.
 
 ```mermaid
-C4Context
-    title System Context Diagram - Lektor Pro
+flowchart TB
+    classDef person fill:#08427b,stroke:#073b6f,color:#fff,stroke-width:2px;
+    classDef internalSystem fill:#1168bd,stroke:#0b4884,color:#fff,stroke-width:2px;
+    classDef externalSystem fill:#5a6268,stroke:#343a40,color:#fff,stroke-width:2px;
 
-    Person(user, "Software Engineer / Reader", "Listens to audiobooks, studies technical text, reads code and architectural diagrams.")
+    user["👤 <b>Software Engineer / Reader</b><br/><i>[Person]</i><br/><br/>Listens to audiobooks, studies technical text,<br/>reads code listings, and architecture diagrams."]:::person
+    
+    lektor["🏛️ <b>Lektor Pro Platform</b><br/><i>[Software System]</i><br/><br/>Local orchestration system converting books (PDF/scans)<br/>to Markdown, generating speech audio,<br/>and providing a web player and Markdown studio."]:::internalSystem
 
-    System(lektor, "Lektor Pro Platform", "Local system converting technical books (PDF/scans) to Markdown, generating audio, and providing a web-based player and Markdown studio.")
+    subgraph ExternalBoundary [" External Systems and Hardware Resources "]
+        direction LR
+        visionServer["🧠 <b>Local Multimodal AI Engine</b><br/><i>[External System]</i><br/><br/>Local LLM/VLM process (llama-server with Gemma 4<br/>or Qwen2.5-VL via OpenAI-compatible API)."]:::externalSystem
+        filesystem[("💾 <b>Host File System</b><br/><i>[Storage / File I/O]</i><br/><br/>Local disk storage: PDF files, scanned images,<br/>generated Markdown pages, and PCM WAV buffers.")]:::externalSystem
+        cuda["⚡ <b>NVIDIA CUDA Hardware</b><br/><i>[Hardware Accelerator]</i><br/><br/>Local GPU providing compute acceleration for PyTorch<br/>neural voice synthesis and VLM inference."]:::externalSystem
+    end
 
-    System_Ext(visionServer, "Local Multimodal AI Engine", "Local LLM/VLM process (e.g. llama-server running Gemma 4 or Qwen2.5-VL via OpenAI-compatible API).")
-    System_Ext(filesystem, "Host File System", "Local data storage: PDF files, scanned images, generated Markdown pages, and PCM WAV audio buffers.")
-    System_Ext(cuda, "NVIDIA CUDA Hardware", "Local GPU providing computational acceleration for PyTorch neural voice synthesis and VLM inference.")
-
-    Rel(user, lektor, "Uses Web GUI and CLI to import, convert, generate audio, and listen", "HTTP / CLI")
-    Rel(lektor, filesystem, "Reads source scans and writes processed pages, WAV tracks, and telemetry logs", "File I/O")
-    Rel(lektor, visionServer, "Sends high-resolution page scans and translation prompts", "HTTP REST / SSE")
-    Rel(lektor, cuda, "Executes PyTorch neural synthesis (OmniVoice/Chatterbox) and monitors VRAM", "CUDA C++ / PyTorch API")
-
+    user -->|"Operates Web GUI and CLI<br/><b>[HTTP / CLI]</b>"| lektor
+    lektor -->|"Sends page scans & translation prompts<br/><b>[HTTP REST / SSE]</b>"| visionServer
+    lektor -->|"Reads scans, writes Markdown & WAV audio<br/><b>[OS File I/O]</b>"| filesystem
+    lektor -->|"Runs PyTorch neural synthesis & monitors VRAM<br/><b>[CUDA / PyTorch API]</b>"| cuda
 ```
 
 ## Boundaries and responsibilities

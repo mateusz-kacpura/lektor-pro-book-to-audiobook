@@ -1,4 +1,4 @@
-﻿# Use case: vision AI translation
+# Use case: vision AI translation
 
 ## Overview
 
@@ -32,31 +32,28 @@ sequenceDiagram
     end
 
     loop For each page in document
-        alt Cancellation signaled
+        break When cancellation signaled
             UC->>Sse: broadcast(CANCELLED)
-            break
         end
 
         UC->>Sse: broadcast(TRANSLATING, current_page, step_desc)
         
         alt Page Markdown already exists and skip_existing=True
             UC->>UC: job.mark_page_completed()
-        else Run multimodal extraction
-            try
-                UC->>Vision: translate_scan(scan, custom_prompt)
-                activate Vision
-                Vision-->>UC: TranslatedMarkdownPage
-                deactivate Vision
-                UC->>Validator: validate_page_integrity(markdown)
-                UC->>Repo: write_markdown(out_page_path, markdown)
-                UC->>UC: job.mark_page_completed()
-            catch Exception
-                UC->>UC: job.mark_page_failed(page_num, error_str)
-                UC->>Sse: broadcast(ERROR, error_str)
-            end
+        else Successful multimodal extraction
+            UC->>Vision: translate_scan(scan, custom_prompt)
+            activate Vision
+            Vision-->>UC: TranslatedMarkdownPage
+            deactivate Vision
+            UC->>Validator: validate_page_integrity(markdown)
+            UC->>Repo: write_markdown(out_page_path, markdown)
+            UC->>UC: job.mark_page_completed()
+        else Error or Timeout
+            UC->>UC: job.mark_page_failed(page_num, error_str)
+            UC->>Sse: broadcast(ERROR, error_str)
         end
 
-        UC->>Sse: broadcast(telemetry snapshot with tokens_per_sec, eta, vram)
+        UC->>Sse: broadcast(telemetry snapshot: tok/s, eta, vram)
     end
 
     UC->>Sse: broadcast(COMPLETED)

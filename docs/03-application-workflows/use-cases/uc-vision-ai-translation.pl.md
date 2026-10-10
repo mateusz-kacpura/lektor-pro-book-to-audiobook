@@ -1,4 +1,4 @@
-﻿# Przypadek użycia: tłumaczenie i ekstrakcja wizyjna AI
+# Przypadek użycia: tłumaczenie i ekstrakcja wizyjna AI
 
 ## Przegląd
 
@@ -32,28 +32,25 @@ sequenceDiagram
     end
 
     loop Dla każdej strony dokumentu
-        alt Zgłoszono anulowanie zadania
+        break Gdy zgłoszono anulowanie zadania
             UC->>Sse: broadcast(CANCELLED)
-            break
         end
 
         UC->>Sse: broadcast(TRANSLATING, numer_strony, opis_kroku)
         
         alt Strona Markdown istnieje i skip_existing=True
             UC->>UC: job.mark_page_completed()
-        else Uruchomienie ekstrakcji multimodalnej
-            try
-                UC->>Vision: translate_scan(scan, custom_prompt)
-                activate Vision
-                Vision-->>UC: TranslatedMarkdownPage
-                deactivate Vision
-                UC->>Validator: validate_page_integrity(markdown)
-                UC->>Repo: write_markdown(out_page_path, markdown)
-                UC->>UC: job.mark_page_completed()
-            catch Błąd / Timeout
-                UC->>UC: job.mark_page_failed(numer_strony, treść_błędu)
-                UC->>Sse: broadcast(BŁĄD, treść_błędu)
-            end
+        else Pomyślna ekstrakcja wizyjna AI
+            UC->>Vision: translate_scan(scan, custom_prompt)
+            activate Vision
+            Vision-->>UC: TranslatedMarkdownPage
+            deactivate Vision
+            UC->>Validator: validate_page_integrity(markdown)
+            UC->>Repo: write_markdown(out_page_path, markdown)
+            UC->>UC: job.mark_page_completed()
+        else Błąd lub limit czasu (Timeout)
+            UC->>UC: job.mark_page_failed(numer_strony, treść_błędu)
+            UC->>Sse: broadcast(BŁĄD, treść_błędu)
         end
 
         UC->>Sse: broadcast(migawka telemetrii: tok/s, eta, vram)
@@ -61,32 +58,27 @@ sequenceDiagram
 
     UC->>Sse: broadcast(COMPLETED)
     deactivate UC
-
 ```
 
 ---
 
 ## 2. Kontrakt komendy wejściowej
 
-```python
-@dataclass(frozen=True)
-class StartConversionCommand:
-    pdf_path: Path
-    book_slug: BookSlug
-    dpi: int = 300
-    custom_prompt: Optional[str] = None
-    start_page: Optional[int] = None
-    end_page: Optional[int] = None
-    skip_existing: bool = True
-    scans_dir: Optional[Path] = None
-    pages_dir: Optional[Path] = None
+Potok przyjmuje komendę `StartConversionCommand`:
 
-```
+| Pole | Typ | Opis |
+| --- | --- | --- |
+| `pdf_path` | `Path` | Ścieżka do pliku źródłowego PDF. |
+| `book_slug` | `str` | Identyfikator książki w formacie kebab-case. |
+| `dpi` | `int` | Rozdzielczość rasteryzacji skanów (domyślnie 300). |
+| `page_range` | `tuple[int, int] \| None` | Zakres stron do przetworzenia lub `None` (całość). |
+| `skip_existing` | `bool` | Pomija strony z istniejącym plikiem Markdown. |
+| `custom_prompt` | `str \| None` | Opcjonalny prompt sterujący tłumaczeniem technicznym. |
 
 ---
 
 ## 3. Niezmienniki i odporność operacyjna
 
-* **Optymalizacja skanów**: Jeśli pliki JPEG w 300 DPI znajdują się w katalogu `scans/`, kosztowny etap podziału PDF jest pomijany, a zadanie przechodzi od razu do inferencji modelu.
-* **Odporność na błędy (`BR-013`)**: Błąd analizy strony $K$ trafia do rejestru `job.failed_pages`, po czym potok bezpiecznie przechodzi do strony $K+1$.
-* **Precyzja telemetrii (`BR-014`)**: Każda strona odpytuje `GpuTelemetryProtocol`, na bieżąco wyliczając prędkość tokenów na sekundę oraz przewidywany czas do końca (ETA).
+1. **Wywłaszczanie VRAM**: Przed wysłaniem zapytań do serwera wizyjnego przypadek użycia wywołuje `arbiter.acquire(SLOT_VISION)`. Gwarantuje to, że modele TTS nie zajmują pamięci karty graficznej.
+2. **Spójność atomowa zapisu**: Strona trafia do repozytorium dopiero po pomyślnej walidacji przez `MarkdownPageValidationService`. Błędnie przetłumaczone pliki nie zastępują poprawnych danych.
+3. **Płynna telemetria SSE**: Każdy krok emituje zdarzenia do `TelemetryBroadcasterProtocol`, zasilając pasek postępu w Web GUI bez blokowania wątku roboczego.

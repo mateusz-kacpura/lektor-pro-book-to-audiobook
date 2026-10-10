@@ -1,4 +1,3 @@
-﻿```markdown
 # Kontrakt składni diagramów Mermaid.js
 
 ## Przegląd
@@ -18,7 +17,6 @@ flowchart TD
     B -->|Wymiana komunikatów| D[sequenceDiagram]
     B -->|Model klas / obiektów| E[classDiagram]
     B -->|Cykl życia / Stany| F[stateDiagram-v2]
-
 ```
 
 ### Dozwolone nagłówki bloków
@@ -38,12 +36,11 @@ Funkcja `validate_mermaid_syntax` sprawdza każdy blok ````mermaid` pod kątem p
 
 1. **Weryfikacja nagłówka**: Pierwsza niepusta linia bloku musi zawierać jedno z dozwolonych słów kluczowych.
 2. **Balans nawiasów węzłów**: Wszystkie kształty węzłów muszą mieć sparowane znaki otwierające i zamykające:
-* Prostokąty: `[` oraz `]`
-* Zaokrąglone ramki: `(` oraz `)`
-* Węzły decyzyjne (romby): `{` oraz `}`
-* Podprogramy: `[[` oraz `]]`
-* Bazy danych (cylindry): `[(` oraz `)]`
-
+   * Prostokąty: `[` oraz `]`
+   * Zaokrąglone ramki: `(` oraz `)`
+   * Węzły decyzyjne (romby): `{` oraz `}`
+   * Podprogramy: `[[` oraz `]]`
+   * Bazy danych (cylindry): `[(` oraz `)]`
 
 3. **Znaki zastrzeżone**: Etykiety węzłów nie mogą zawierać niesparowanych cudzysłowów (`"`) ani wolnych znaków pionowej kreski (`|`), które zaburzają parsowanie połączeń.
 

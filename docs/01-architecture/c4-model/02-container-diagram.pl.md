@@ -1,41 +1,60 @@
-﻿# Diagram kontenerów (poziom 2)
+# Diagram kontenerów (poziom 2)
 
 ## Przegląd
 
 Diagram kontenerów ilustruje podział systemu Lektor Pro na jednostki wykonawcze, użyte technologie oraz komunikację międzyprocesową.
 
 ```mermaid
-C4Container
-    title Diagram kontenerów - Lektor Pro
+flowchart TB
+    classDef person fill:#08427b,stroke:#073b6f,color:#fff,stroke-width:2px;
+    classDef container fill:#1168bd,stroke:#0b4884,color:#fff,stroke-width:2px;
+    classDef storage fill:#5a6268,stroke:#343a40,color:#fff,stroke-width:2px;
+    classDef extProcess fill:#6c757d,stroke:#495057,color:#fff,stroke-width:2px;
 
-    Person(user, "Użytkownik", "Korzysta z aplikacji przez przeglądarkę internetową lub terminal.")
+    user["👤 <b>Użytkownik / czytelnik</b><br/><i>[Osoba]</i><br/><br/>Korzysta z aplikacji przez przeglądarkę internetową lub terminal."]:::person
 
-    System_Boundary(c1, "Środowisko wykonawcze Lektor Pro") {
-        Container(browser, "Interfejs przeglądarkowy Web GUI", "Vanilla JavaScript (moduły ES), HTML5 Audio, CSS3", "Pulpit roboczy w przeglądarce: odtwarzacz, czytnik Markdown, notatnik i telemetria na żywo.")
-        Container(cli, "Interfejs konsolowy CLI", "Python 3.14 / argparse", "Narzędzia wiersza poleceń do syntezy wsadowej, zarządzania katalogiem książek i konwersji skanów.")
-        Container(webServer, "Serwer aplikacji", "Python 3.14 / FastAPI i Uvicorn", "Punkty końcowe REST, strumieniowanie SSE, serwowanie plików statycznych i wstrzykiwanie zależności.")
-        Container(portFwd, "Forwarder TCP", "Python 3.14 / asyncio", "Przekierowuje ruch z portu 80 na wewnętrzny port 7860 dla wygody w sieci lokalnej i Tailscale.")
-        Container(appCore, "Rdzeń aplikacji i przypadki użycia", "Python 3.14 (ścisłe typowanie bez Any)", "Modele domenowe, normalizatory lingwistyczne, potoki zadań oraz kontrakty portów.")
-        Container(audioEngine, "Podsystem audio DSP i TTS", "NumPy, SciPy, SoundFile, PyTorch, Silero VAD", "Synteza mowy, buforowanie bez alokacji, filtry odszumiania i pamięć podręczna SHA-256.")
-        Container(vramArbiter, "Dynamiczny arbiter VRAM", "Procesy potomne / PyTorch CUDA API", "Zapewnia wzajemne wykluczanie na karcie graficznej, zamykając llama-server przed załadowaniem silnika TTS.")
-    }
+    subgraph LektorEnv [" 🏛️ Środowisko wykonawcze Lektor Pro "]
+        direction TB
 
-    ContainerDb(fs, "Lokalny system plików", "Magazyn dyskowy", "Katalogi data/books/<slug>/, skany, pliki WAV, notatki oraz konfiguracja .env.")
-    Container_Ext(llamaServer, "Serwer multimodalny VLM", "llama-server.exe (C++ / CUDA)", "Udostępnia modele Gemma 4 lub Qwen z projektorem mmproj na porcie 1234.")
+        subgraph IngressGroup [" Punkty wejścia klienta "]
+            direction LR
+            browser["🌐 <b>Interfejs Web GUI</b><br/><i>[Vanilla JS, moduły ES, HTML5, CSS3]</i><br/><br/>Pulpit roboczy w przeglądarce: odtwarzacz audio,<br/>czytnik Markdown, notatnik i telemetria SSE."]:::container
+            cli["💻 <b>Interfejs konsolowy CLI</b><br/><i>[Python 3.14 / argparse]</i><br/><br/>Narzędzia wiersza poleceń do syntezy wsadowej,<br/>zarządzania katalogiem i konwersji skanów."]:::container
+            portFwd["🔀 <b>Forwarder TCP</b><br/><i>[Python 3.14 / asyncio]</i><br/><br/>Przekierowuje ruch z portu 80 na wewnętrzny port 7860<br/>dla bezpośredniego dostępu w sieci LAN i Tailscale."]:::container
+        end
 
-    Rel(user, browser, "Steruje odtwarzaniem, uruchamia konwersję, zapisuje notatki", "HTTP / przeglądarka")
-    Rel(user, cli, "Uruchamia przetwarzanie wsadowe lub sprawdza status biblioteki", "Terminal / powłoka")
-    Rel(browser, webServer, "Wywołuje REST API, pobiera pliki, nasłuchuje postępu", "HTTP REST / SSE")
-    Rel(user, portFwd, "Wysyła żądania na port 80", "TCP")
-    Rel(portFwd, webServer, "Przekazuje ruch na port 7860", "TCP pętla zwrotna")
-    Rel(cli, appCore, "Wywołuje przypadki użycia bezpośrednio przez kontener", "Wywołania metod w pamięci")
-    Rel(webServer, appCore, "Deleguje żądania HTTP do przypadków użycia przez Depends", "FastAPI Depends")
-    Rel(appCore, audioEngine, "Zleca syntezę mowy, łączenie próbek i czyszczenie sygnału", "Porty audio")
-    Rel(appCore, vramArbiter, "Żąda dostępu do slotu (SLOT_VISION lub SLOT_AUDIO_TTS)", "Porty zasobów")
-    Rel(appCore, fs, "Odczytuje i zapisuje strony, pliki stanu oraz metadane", "Porty magazynów danych")
-    Rel(vramArbiter, llamaServer, "Uruchamia, monitoruje i zamyka proces serwera przez taskkill", "Proces potomny / HTTP health check")
-    Rel(appCore, llamaServer, "Przesyła skany stron w celu analizy i ekstrakcji", "HTTP REST / port 1234")
+        webServer["⚡ <b>Serwer aplikacji</b><br/><i>[Python 3.14 / FastAPI i Uvicorn]</i><br/><br/>Udostępnia punkty REST, strumieniowanie SSE,<br/>serwowanie zasobów i wstrzykiwanie zależności."]:::container
 
+        appCore["⚙️ <b>Rdzeń aplikacji i przypadki użycia</b><br/><i>[Python 3.14 (ścisłe typowanie bez Any)]</i><br/><br/>Modele domenowe, normalizatory lingwistyczne,<br/>potoki zadań oraz kontrakty portów."]:::container
+
+        subgraph ProcessingGroup [" Podsystemy audio i zasobów sprzętowych "]
+            direction LR
+            audioEngine["🎵 <b>Podsystem audio DSP i TTS</b><br/><i>[NumPy, SciPy, SoundFile, PyTorch, Silero VAD]</i><br/><br/>Synteza mowy, buforowanie bez alokacji,<br/>filtry odszumiania i pamięć podręczna SHA-256."]:::container
+            vramArbiter["🛡️ <b>Dynamiczny arbiter VRAM</b><br/><i>[Procesy potomne / PyTorch CUDA API]</i><br/><br/>Zapewnia wzajemne wykluczanie na GPU,<br/>wywłaszczając llama-server przed załadowaniem TTS."]:::container
+        end
+    end
+
+    subgraph ExternalGroup [" Pamięć masowa i procesy zewnętrzne "]
+        direction LR
+        fs[("💾 <b>Lokalny system plików</b><br/><i>[Magazyn dyskowy stacji roboczej]</i><br/><br/>Katalogi data/books/<slug>/, skany stron,<br/>pliki WAV, notatki oraz konfiguracja .env.")]:::storage
+        llamaServer["🧠 <b>Serwer multimodalny VLM</b><br/><i>[llama-server.exe (C++ / CUDA)]</i><br/><br/>Hostuje modele Gemma 4 lub Qwen z projektorem<br/>wizyjnym mmproj na porcie 1234."]:::extProcess
+    end
+
+    user -->|"Obsługuje pulpit GUI<br/><b>[HTTP]</b>"| browser
+    user -->|"Uruchamia przetwarzanie<br/><b>[Powłoka CLI]</b>"| cli
+    user -->|"Wysyła żądania na port 80<br/><b>[TCP:80]</b>"| portFwd
+
+    portFwd -->|"Przekazuje ruch na port 7860<br/><b>[TCP pętla zwrotna]</b>"| webServer
+    browser -->|"Wywołuje REST API i nasłuchuje SSE<br/><b>[HTTP REST / SSE]</b>"| webServer
+    cli -->|"Wywołuje przypadki użycia bezpośrednio<br/><b>[Wywołania metod]</b>"| appCore
+    webServer -->|"Deleguje żądania HTTP do use case'ów<br/><b>[FastAPI Depends]</b>"| appCore
+
+    appCore -->|"Zleca syntezę mowy i czyszczenie audio<br/><b>[Porty audio]</b>"| audioEngine
+    appCore -->|"Żąda dostępu do slotu (SLOT_VISION / SLOT_AUDIO_TTS)<br/><b>[Porty zasobów]</b>"| vramArbiter
+    appCore -->|"Odczytuje i zapisuje strony oraz pliki WAV<br/><b>[Porty magazynów / I/O]</b>"| fs
+    appCore -->|"Przesyła skany stron w celu ekstrakcji<br/><b>[HTTP REST / Port 1234]</b>"| llamaServer
+
+    vramArbiter -.->|"Uruchamia, monitoruje i zamyka proces<br/><b>[Proces potomny / Sygnały]</b>"| llamaServer
 ```
 
 ## Kontenery systemu
@@ -46,3 +65,18 @@ C4Container
 4. **Rdzeń aplikacji i przypadki użycia**: Usługi domenowe i interaktory operujące wyłącznie na abstrakcjach portów ze ścisłą kontrolą typów.
 5. **Podsystem audio DSP i TTS**: Łączy neuronową generację mowy z filtrami cyfrowego przetwarzania sygnałów i pamięcią podręczną adresowaną haszem SHA-256.
 6. **Dynamiczny arbiter VRAM**: Kontroluje obecność modeli w pamięci karty graficznej, eliminując błędy braku pamięci (OOM).
+
+---
+
+## ⚙️ Specyfikacja techniczna kontenerów
+
+| Kontener | Stos technologiczny | Interfejs / Port | Główna odpowiedzialność |
+| --- | --- | --- | --- |
+| **Web GUI Frontend** | Vanilla JS (ESM), CSS3, HTML5 | DOM przeglądarki | Menedżer okien pulpitu, odtwarzacz audio, czytnik Markdown i nasłuchiwanie SSE. |
+| **Forwarder TCP** | Python `asyncio` (`port_forwarder.py`) | TCP `0.0.0.0:80` $\to$ `127.0.0.1:7860` | Dostęp w sieci lokalnej bez konieczności podawania portu w przeglądarkach mobilnych. |
+| **Serwer aplikacji API** | FastAPI, Uvicorn, Python 3.14 | HTTP `127.0.0.1:7860` | Punkty końcowe REST, walidacja Pydantic i zarządzanie wątkami roboczymi. |
+| **Konsola CLI** | Python `argparse` (`main.py`) | CLI powłoki | Wsadowe potoki przetwarzania i syntezy w środowiskach bez interfejsu graficznego. |
+| **Arbiter zasobów VRAM** | Python (`DynamicVramModelArbiter`) | Protokół wewnętrzny | Wywłaszczanie modeli na karcie graficznej w celu uniknięcia błędów OOM. |
+| **Silnik wizyjny AI** | `llama-server.exe` (CUDA 12) | HTTP `127.0.0.1:1234/v1` | Multimodalny OCR skanów i tłumaczenie techniczne na polski Markdown. |
+| **Silnik TTS i DSP** | PyTorch, SciPy, NumPy, SoundFile | Biblioteki w procesie | Synteza mowy, odszumianie Silero VAD i normalizacja głośności. |
+| **Magazyn plików** | System plików systemu operacyjnego | Hierarchia katalogów | Przechowywanie skanów 300 DPI, wygenerowanych plików Markdown i ścieżek WAV. |

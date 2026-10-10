@@ -1,53 +1,77 @@
-﻿C4Component
-    title Diagram komponentów - rdzeń aplikacji i adaptery interfejsów
+# Diagram komponentów (poziom 3)
 
-    Container_Boundary(adapters, "Warstwa adapterów interfejsów") {
-        Component(guiRouters, "Routery FastAPI", "converter, generator, player, studio, notes, web", "Mapują żądania HTTP na komendy DTO.")
-        Component(cliMain, "Punkt wejściowy CLI", "lektor.adapters.cli.main", "Przetwarza argumenty konsoli i wykonuje przypadki użycia.")
-        Component(bookRepo, "FileSystemBookRepository", "BookRepositoryProtocol", "Zarządza metadanymi książek, ścieżkami, skanami i stronami.")
-        Component(pageRepo, "FileSystemPageRepository", "PageRepositoryProtocol", "Realizuje operacje wejścia/wyjścia dla plików Markdown i stanu.")
-        Component(audioCleaner, "SileroAudioCleaner", "AudioCleanerProtocol", "Stosuje filtr Butterwortha, Silero VAD i wygaszanie brzegów.")
-        Component(audioStitcher, "NumpyAudioStitcher", "AudioStitcherProtocol", "Łączy bufory próbek, normalizuje głośność i zapisuje WAV.")
-        Component(universalTTS, "UniversalTTSEngine", "TTSEngineProtocol", "Koordynuje pracę modeli OmniVoice oraz Chatterbox.")
-        Component(visionAdapter, "UniversalVisionTranslatorAdapter", "VisionTranslatorProtocol", "Koduje obrazy, wywołuje API multimodalne i tworzy stronę domenową.")
-        Component(pdfSplitter, "PyMuPdfSplitterAdapter", "PdfSplitterProtocol", "Renderuje strony PDF do obrazów JPEG w 300 DPI.")
-        Component(arbiter, "DynamicVramModelArbiter", "AIModelArbiterProtocol", "Zarządza wzajemnym wykluczaniem serwera wizyjnego i PyTorch TTS.")
-    }
+## Przegląd
 
-    Container_Boundary(app, "Warstwa przypadków użycia (aplikacja)") {
-        Component(ucConvert, "ConvertPdfBookUseCase", "Orkiestrator konwersji", "Koordynuje podział PDF, analizę wizyjną, walidację i telemetrię.")
-        Component(ucSynthPage, "SynthesizePageUseCase", "Orkiestrator syntezy", "Koordynuje normalizację, syntezę mowy, łączenie audio i zapis stanu.")
-        Component(ucBatchSynth, "BatchSynthesisUseCase", "Przetwarzanie wsadowe", "Iteruje po stronach książki i wykonuje syntezę pojedynczych stron.")
-        Component(ucStatus, "GetBookStatusUseCase", "Agregator statusu", "Agreguje całościowy postęp, czas trwania audio i statusy stron.")
-    }
+Diagram komponentów przedstawia wewnętrzną dekompozycję rdzenia aplikacji oraz warstw architektury, w pełni odzwierciedlając regułę zależności Czystej Architektury (Clean Architecture).
 
-    Container_Boundary(domain, "Warstwa encji i reguł (domena)") {
-        Component(normalizer, "TextNormalizationService", "Usługa domenowa", "Dzieli tekst, normalizuje liczby, tłumaczy składnię Go i fonetykę.")
-        Component(validator, "MarkdownPageValidationService", "Usługa domenowa", "Sprawdza integralność Markdownu, bloków kodu i diagramów Mermaid.")
-        Component(glossary, "TechnicalGlossaryService", "Usługa domenowa", "Zabezpiecza pojęcia Cloud Native przed błędnym tłumaczeniem.")
-        Component(entities, "Modele domenowe i VO", "Book, ConversionJob, SpeechSegment, DataPaths", "Niezmienne obiekty wartości, encje i maszyny stanów.")
-    }
+```mermaid
+flowchart TB
+    classDef adapter fill:#08427b,stroke:#073b6f,color:#fff,stroke-width:2px;
+    classDef usecase fill:#1168bd,stroke:#0b4884,color:#fff,stroke-width:2px;
+    classDef domain fill:#1f7a8c,stroke:#14525e,color:#fff,stroke-width:2px;
+    classDef gateway fill:#5a6268,stroke:#343a40,color:#fff,stroke-width:2px;
 
-    Rel(guiRouters, ucConvert, "Wywołuje przez obiekt komendy DTO")
-    Rel(guiRouters, ucSynthPage, "Wywołuje przez obiekt komendy DTO")
-    Rel(guiRouters, ucStatus, "Wywołuje przez obiekt zapytania DTO")
-    Rel(cliMain, ucSynthPage, "Wywołuje przez obiekt komendy DTO")
-    Rel(cliMain, ucBatchSynth, "Wywołuje przez obiekt komendy DTO")
+    subgraph DrivingAdapters [" 🌐 Adaptery wejściowe (Driving / Ingress) "]
+        direction LR
+        guiRouters["⚡ <b>Routery FastAPI</b><br/><i>[Web GUI REST / SSE DTO]</i>"]:::adapter
+        cliMain["💻 <b>Punkt wejściowy CLI</b><br/><i>[lektor.adapters.cli.main]</i>"]:::adapter
+    end
 
-    Rel(ucConvert, pdfSplitter, "Zleca podział dokumentu")
-    Rel(ucConvert, visionAdapter, "Zleca tłumaczenie skanu")
-    Rel(ucConvert, arbiter, "Zajmuje slot SLOT_VISION")
-    Rel(ucConvert, pageRepo, "Zapisuje plik Markdown")
-    Rel(ucConvert, validator, "Weryfikuje integralność wyjścia")
-    Rel(ucConvert, glossary, "Chroni terminy techniczne")
+    subgraph AppLayer [" ⚙️ Warstwa przypadków użycia (Application Layer) "]
+        direction LR
+        ucConvert["📄 <b>ConvertPdfBookUseCase</b><br/><i>[Orkiestrator konwersji PDF]</i>"]:::usecase
+        ucSynthPage["🎙️ <b>SynthesizePageUseCase</b><br/><i>[Orkiestrator syntezy strony]</i>"]:::usecase
+        ucBatchSynth["📦 <b>BatchSynthesisUseCase</b><br/><i>[Przetwarzanie wsadowe]</i>"]:::usecase
+        ucStatus["📊 <b>GetBookStatusUseCase</b><br/><i>[Agregacja statusu książki]</i>"]:::usecase
+    end
 
-    Rel(ucSynthPage, normalizer, "Tworzy segmenty mowy")
-    Rel(ucSynthPage, universalTTS, "Generuje próbki audio")
-    Rel(ucSynthPage, audioStitcher, "Łączy segmenty i dodaje pauzy")
-    Rel(ucSynthPage, pageRepo, "Odczytuje tekst i zapisuje stan")
-    Rel(ucSynthPage, arbiter, "Zajmuje slot SLOT_AUDIO_TTS")
+    subgraph DomainLayer [" 🏛️ Warstwa encji i reguł (Domain Layer) "]
+        direction TB
+        normalizer["🔤 <b>TextNormalizationService</b><br/><i>[Normalizacja tekstu i fonetyzacja Go]</i>"]:::domain
+        validator["🛡️ <b>MarkdownPageValidationService</b><br/><i>[Walidacja integralności i Mermaid]</i>"]:::domain
+        glossary["📚 <b>TechnicalGlossaryService</b><br/><i>[Ochrona terminów Cloud Native]</i>"]:::domain
+        entities["🧱 <b>Modele domenowe i VO</b><br/><i>[Book, ConversionJob, SpeechSegment, DataPaths]</i>"]:::domain
+    end
 
-    Rel(universalTTS, audioCleaner, "Oczyszcza sygnał mowy")
-    Rel(normalizer, entities, "Tworzy instancje SpeechSegment")
-    Rel(bookRepo, entities, "Konstruuje encje Book i ścieżki DataPaths")
+    subgraph DrivenAdapters [" 🔌 Adaptery wyjściowe i sterowniki (Driven / Infrastructure) "]
+        direction TB
+        pageRepo["💾 <b>FileSystemPageRepository</b><br/><i>[PageRepositoryProtocol]</i>"]:::gateway
+        bookRepo["📁 <b>FileSystemBookRepository</b><br/><i>[BookRepositoryProtocol]</i>"]:::gateway
+        universalTTS["🗣️ <b>UniversalTTSEngine</b><br/><i>[TTSEngineProtocol: OmniVoice / Chatterbox]</i>"]:::gateway
+        audioCleaner["🧹 <b>SileroAudioCleaner</b><br/><i>[AudioCleanerProtocol: VAD i filtry]</i>"]:::gateway
+        audioStitcher["🪡 <b>NumpyAudioStitcher</b><br/><i>[AudioStitcherProtocol: normalizacja WAV]</i>"]:::gateway
+        visionAdapter["👁️ <b>UniversalVisionTranslatorAdapter</b><br/><i>[VisionTranslatorProtocol: OpenAI API]</i>"]:::gateway
+        pdfSplitter["📑 <b>PyMuPdfSplitterAdapter</b><br/><i>[PdfSplitterProtocol: 300 DPI JPEG]</i>"]:::gateway
+        arbiter["⚖️ <b>DynamicVramModelArbiter</b><br/><i>[AIModelArbiterProtocol: wywłaszczanie VRAM]</i>"]:::gateway
+    end
 
+    guiRouters -->|"Wywołuje przez DTO"| ucConvert
+    guiRouters -->|"Wywołuje przez DTO"| ucSynthPage
+    guiRouters -->|"Wywołuje przez DTO"| ucStatus
+    cliMain -->|"Wywołuje przez DTO"| ucSynthPage
+    cliMain -->|"Wywołuje przez DTO"| ucBatchSynth
+    ucBatchSynth -->|"Wykonuje w pętli"| ucSynthPage
+
+    ucConvert -->|"Podział stron PDF"| pdfSplitter
+    ucConvert -->|"Tłumaczenie skanów"| visionAdapter
+    ucConvert -->|"Wywłaszczenie GPU"| arbiter
+    ucConvert -->|"Zapis stron"| pageRepo
+    ucConvert -->|"Walidacja treści"| validator
+    ucConvert -->|"Słownik pojęć"| glossary
+
+    ucSynthPage -->|"Segmentacja mowy"| normalizer
+    ucSynthPage -->|"Synteza audio"| universalTTS
+    ucSynthPage -->|"Łączenie próbek WAV"| audioStitcher
+    ucSynthPage -->|"Stan strony"| pageRepo
+    ucSynthPage -->|"Rezerwacja VRAM"| arbiter
+
+    universalTTS -->|"Czyszczenie próbek"| audioCleaner
+    normalizer -->|"Tworzy instancje"| entities
+    bookRepo -->|"Buduje modele"| entities
+```
+
+## Analiza granic warstw
+
+* **Warstwa domeny (Entities Layer)**: Zawiera encje, obiekty wartości (VO) oraz bezstanowe usługi domenowe. Jest całkowicie odizolowana od frameworków, baz danych i wejścia/wyjścia.
+* **Warstwa aplikacji (Use Cases Layer)**: Definiuje abstrakcyjne kontrakty portów (`typing.Protocol`) i orkiestruje przepływ danych przy pomocy dedykowanych komend i zapytań DTO.
+* **Warstwa adapterów interfejsów (Interface Adapters Layer)**: Tłumaczy dane zewnętrzne (HTTP REST, CLI, system plików, akceleratory sprzętowe) na struktury domenowe i implementuje porty wyjściowe.

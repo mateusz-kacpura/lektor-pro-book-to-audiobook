@@ -1,47 +1,60 @@
-﻿
-
-### Plik 3: `docs/01-architecture/c4-model/02-container-diagram.md` (Wersja angielska)
-
-Zapisz w: `docs/01-architecture/c4-model/02-container-diagram.md`
-
-```mar# Container diagram (level 2)
+# Container diagram (level 2)
 
 ## Overview
 
 The container diagram illustrates the runtime boundaries, technologies, and inter-process communication mechanisms comprising Lektor Pro.
 
 ```mermaid
-C4Container
-    title Container Diagram - Lektor Pro
+flowchart TB
+    classDef person fill:#08427b,stroke:#073b6f,color:#fff,stroke-width:2px;
+    classDef container fill:#1168bd,stroke:#0b4884,color:#fff,stroke-width:2px;
+    classDef storage fill:#5a6268,stroke:#343a40,color:#fff,stroke-width:2px;
+    classDef extProcess fill:#6c757d,stroke:#495057,color:#fff,stroke-width:2px;
 
-    Person(user, "User", "Accesses the application via web browser or terminal.")
+    user["👤 <b>User / Reader</b><br/><i>[Person]</i><br/><br/>Accesses the application via web browser or terminal."]:::person
 
-    System_Boundary(c1, "Lektor Pro Environment") {
-        Container(browser, "Web GUI Frontend", "Vanilla JavaScript (ES Modules), HTML5 Audio, CSS3", "In-browser single-page workspace with player, Markdown reader, note scratchpad, and telemetry.")
-        Container(cli, "CLI Interface", "Python 3.14 / argparse", "Command-line tools for batch audio synthesis, book catalog management, and scan conversion.")
-        Container(webServer, "Application Server", "Python 3.14 / FastAPI & Uvicorn", "Provides REST endpoints, Server-Sent Events telemetry, static resource routing, and dependency injection.")
-        Container(portFwd, "TCP Port Forwarder", "Python 3.14 / asyncio", "Pipes port 80 traffic to internal port 7860 for direct LAN and Tailscale access.")
-        Container(appCore, "Clean Core & Use Cases", "Python 3.14 (Strict Typing, No Any)", "Domain models, linguistic normalizers, conversion workflows, and port contracts.")
-        Container(audioEngine, "Audio DSP & TTS Subsystem", "NumPy, SciPy, SoundFile, PyTorch, Silero VAD", "Speech synthesis, zero-allocation buffering, noise filtering, and SHA-256 caching.")
-        Container(vramArbiter, "Dynamic VRAM Arbiter", "Python subprocess / PyTorch CUDA API", "Enforces mutual exclusion on the GPU, preempting llama-server before loading TTS engines.")
-    }
+    subgraph LektorEnv [" 🏛️ Lektor Pro Runtime Environment "]
+        direction TB
 
-    ContainerDb(fs, "Local Data Storage", "File System", "Stores data/books/<slug>/, pages, scans, audio WAV files, and .env configuration.")
-    Container_Ext(llamaServer, "Multimodal VLM Server", "llama-server.exe (C++ / CUDA)", "Hosts Google Gemma 4 or Qwen models with mmproj visual projectors on port 1234.")
+        subgraph IngressGroup [" Client Entrypoints "]
+            direction LR
+            browser["🌐 <b>Web GUI Frontend</b><br/><i>[Vanilla JS, ESM, HTML5 Audio, CSS3]</i><br/><br/>Single-page desktop workspace with audio player,<br/>Markdown reader, note scratchpad, and SSE telemetry."]:::container
+            cli["💻 <b>CLI Interface</b><br/><i>[Python 3.14 / argparse]</i><br/><br/>Command-line tools for batch audio synthesis,<br/>book catalog management, and scan conversion."]:::container
+            portFwd["🔀 <b>TCP Port Forwarder</b><br/><i>[Python 3.14 / asyncio]</i><br/><br/>Relays port 80 traffic to internal port 7860<br/>for direct LAN and Tailscale access."]:::container
+        end
 
-    Rel(user, browser, "Operates player, triggers batch conversions, writes notes", "HTTP / Web Browser")
-    Rel(user, cli, "Runs batch generation or checks catalog status", "Terminal / Shell")
-    Rel(browser, webServer, "Invokes REST endpoints, uploads files, listens to live progress", "HTTP REST / SSE")
-    Rel(user, portFwd, "Connects via port 80", "TCP")
-    Rel(portFwd, webServer, "Forwards client traffic to 7860", "TCP Loopback")
-    Rel(cli, appCore, "Invokes use cases directly using container", "Direct method calls")
-    Rel(webServer, appCore, "Dispatches HTTP requests to use cases via container dependencies", "FastAPI Depends")
-    Rel(appCore, audioEngine, "Requests speech synthesis, stitcher concatenation, and audio cleaning", "Audio ports")
-    Rel(appCore, vramArbiter, "Acquires model slots (SLOT_VISION or SLOT_AUDIO_TTS)", "Resource ports")
-    Rel(appCore, fs, "Reads and writes book pages, states, and metadata", "Storage ports / File I/O")
-    Rel(vramArbiter, llamaServer, "Starts, monitors, and terminates server process via signals and taskkill", "Subprocess / HTTP health check")
-    Rel(appCore, llamaServer, "Sends page images for translation and diagram extraction", "HTTP REST / Port 1234")
+        webServer["⚡ <b>Application Server</b><br/><i>[Python 3.14 / FastAPI & Uvicorn]</i><br/><br/>Provides REST endpoints, Server-Sent Events telemetry,<br/>static resource routing, and dependency injection."]:::container
 
+        appCore["⚙️ <b>Clean Core & Use Cases</b><br/><i>[Python 3.14 (Strict Typing, No Any)]</i><br/><br/>Domain models, linguistic normalizers,<br/>conversion workflows, and port contracts."]:::container
+
+        subgraph ProcessingGroup [" Audio & Hardware Resource Subsystems "]
+            direction LR
+            audioEngine["🎵 <b>Audio DSP & TTS Subsystem</b><br/><i>[NumPy, SciPy, SoundFile, PyTorch, Silero VAD]</i><br/><br/>Speech synthesis, zero-allocation buffering,<br/>noise filtering, and SHA-256 audio caching."]:::container
+            vramArbiter["🛡️ <b>Dynamic VRAM Arbiter</b><br/><i>[Python subprocess / PyTorch CUDA API]</i><br/><br/>Enforces mutual exclusion on the GPU,<br/>preempting llama-server before loading TTS."]:::container
+        end
+    end
+
+    subgraph ExternalGroup [" Storage & External Processes "]
+        direction LR
+        fs[("💾 <b>Local Data Storage</b><br/><i>[Host File System]</i><br/><br/>Stores data/books/<slug>/, pages, scans,<br/>audio WAV files, and .env configuration.")]:::storage
+        llamaServer["🧠 <b>Multimodal VLM Server</b><br/><i>[llama-server.exe (C++ / CUDA)]</i><br/><br/>Hosts Google Gemma 4 or Qwen models with<br/>mmproj visual projectors on port 1234."]:::extProcess
+    end
+
+    user -->|"Operates Web UI<br/><b>[HTTP]</b>"| browser
+    user -->|"Runs batch generation<br/><b>[CLI Shell]</b>"| cli
+    user -->|"Connects via port 80<br/><b>[TCP:80]</b>"| portFwd
+
+    portFwd -->|"Pipes traffic to 7860<br/><b>[TCP Loopback]</b>"| webServer
+    browser -->|"Invokes REST endpoints & listens to SSE<br/><b>[HTTP REST / SSE]</b>"| webServer
+    cli -->|"Invokes use cases directly<br/><b>[In-Memory Calls]</b>"| appCore
+    webServer -->|"Dispatches requests to use cases<br/><b>[FastAPI Depends]</b>"| appCore
+
+    appCore -->|"Requests speech synthesis & DSP cleaning<br/><b>[Audio Ports]</b>"| audioEngine
+    appCore -->|"Acquires model slots (SLOT_VISION / SLOT_AUDIO_TTS)<br/><b>[Resource Ports]</b>"| vramArbiter
+    appCore -->|"Reads and writes book pages, states, metadata<br/><b>[Storage Ports / File I/O]</b>"| fs
+    appCore -->|"Sends page images for translation<br/><b>[HTTP REST / Port 1234]</b>"| llamaServer
+
+    vramArbiter -.->|"Starts, monitors, and terminates server<br/><b>[Subprocess / Signals]</b>"| llamaServer
 ```
 
 ## Runtime containers
@@ -52,9 +65,6 @@ C4Container
 4. **Clean core and use cases**: Domain services and application interactors with strict type checking, relying on port abstractions.
 5. **Audio DSP and TTS subsystem**: Combines neural speech generation with digital signal processing (DSP) filters and content-addressable storage.
 6. **Dynamic VRAM arbiter**: Coordinates execution between VLM processes and in-process PyTorch models on memory-constrained GPUs.
-Persists markdown, audio, and state", "File I/O")
-
-```
 
 ---
 
@@ -70,5 +80,3 @@ Persists markdown, audio, and state", "File I/O")
 | **Vision Model Runtime** | `llama-server.exe` (CUDA 12) | HTTP `127.0.0.1:1234/v1` | Performs multimodal vision OCR and technical translation into Polish Markdown. |
 | **TTS & DSP Engine** | PyTorch, SciPy, NumPy, SoundFile | In-process CUDA / CPU | Synthesizes speech, cleans audio tails via Silero VAD, and normalizes output volume. |
 | **File System Repository** | Host OS Filesystem | Directory Hierarchy | Canonical storage holding metadata, 300 DPI scans, generated markdown files, and audio tracks. |
-
-```ng.
