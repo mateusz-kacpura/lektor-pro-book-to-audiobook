@@ -1,0 +1,22 @@
+﻿Copyright (c) 2026 Mateusz Kacpura
+
+All rights reserved.
+
+This software, its source code, documentation, configuration, scripts, and original project
+assets are proprietary and are not released under an open-source license.
+
+Private, personal, and non-commercial use of this software is permitted.
+
+No permission is granted to publish, publicly distribute, sublicense, sell, commercially
+use, or create and distribute derivative works from this software or its documentation
+without prior written permission from Mateusz Kacpura.
+
+The software is provided "as is", without warranties of any kind. The author is not liable
+for any claim, damages, or other liability arising from the use of the software.
+
+Third-party libraries, AI models, Nginx, CUDA, and other external components remain subject
+to their respective owners'' licenses and terms. Content imported or stored in the data/
+directory may be copyrighted by third parties and is not covered by this project license.
+
+
+

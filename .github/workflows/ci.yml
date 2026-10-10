@@ -1,0 +1,45 @@
+name: CI Pipeline - Clean Architecture & Strict Quality
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  audit-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install mypy ruff httpx pytest
+
+      - name: Code Quality & Unused Code Audit (ruff)
+        run: |
+          python -m ruff check --select F,ARG lektor tests
+
+      - name: Strict Static Type Checking (mypy without Any)
+        run: |
+          python -m mypy --config-file references/mypy.ini lektor tests
+
+      - name: Run Unit Tests (Domain & Use Cases)
+        run: |
+          python -m unittest discover -s tests/unit
+
+      - name: Run Integration Tests (Adapters & Storage)
+        run: |
+          python -m unittest discover -s tests/integration
+
+      - name: Run End-to-End Tests (CLI & API Routes)
+        run: |
+          python -m unittest discover -s tests/e2e
+

@@ -1,0 +1,40 @@
+﻿# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches and tooling
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Nginx runtime
+nginx/logs/*.log
+nginx/logs/*.pid
+nginx/temp/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment files
+.env
+
+# Hidden directories (generated/local data)
+.*/
+# Keep repository configuration under version control
+!.github/
+!.github/**
+
+# Nginx configuration and runtime files
+nginx/
+data/

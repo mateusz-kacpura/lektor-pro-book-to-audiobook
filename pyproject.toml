@@ -1,0 +1,71 @@
+[project]
+name = "lektor-clean-arch"
+version = "2.0.0"
+description = "System syntezy mowy (TTS) i konwersji ksiÄ‚â€žĂ˘â‚¬Â¦Ă„Ä…Ă„Ëťek technicznych w Czystej Architekturze"
+authors = [{ name = "Mateusz Kacpura" }]
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.0.0",
+    "soundfile>=0.13.0",
+    "num2words>=0.5.14",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "pydantic>=2.8.0",
+    "pymupdf>=1.25.0",
+    "scipy>=1.14.0",
+    "librosa>=0.10.2",
+    "noisereduce>=3.0.3",
+    "torch>=2.2.0",
+    "torchaudio>=2.2.0",
+    "jinja2>=3.1.4",
+    "python-multipart>=0.0.9",
+    "transformers>=4.40.0",
+    "pillow>=10.0.0",
+    "chatterbox-tts>=0.1.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "httpx>=0.27.0",
+    "mypy>=1.11.0",
+    "ruff>=0.6.0",
+    "pre-commit>=3.8.0",
+    "scipy-stubs>=1.18.0",
+    "pytest>=8.2.0",
+]
+
+[tool.pyright]
+reportMissingTypeStubs = "none"
+
+[project.scripts]
+lektor = "lektor.adapters.cli.main:main"
+lektor-gui = "run_gui:main"
+
+[tool.mypy]
+python_version = "3.14"
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+ignore_missing_imports = true
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "ARG"]
+ignore = ["E501"]
+fixable = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ARG002"]
+"scripts/*" = ["E402", "I001"]
+
+
+
+
+[tool.setuptools.packages.find]
+include = ["lektor*"]

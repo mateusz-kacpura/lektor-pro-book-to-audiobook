@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="meta.titleAudiobook">Lektor Pro — Inteligentny Generator & Odtwarzacz Audiobooków</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <!-- Modularne arkusze stylów CSS -->
+  <link rel="stylesheet" href="/static/css/variables.css">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/layout.css?v=20261009-nav-colors">
+  <link rel="stylesheet" href="/static/css/components.css?v=20261009-input-language-style">
+  <link rel="stylesheet" href="/static/css/desktop.css">
+  <link rel="stylesheet" href="/static/css/style.css?v=20261009-input-language-style">
+  <link rel="stylesheet" href="/static/css/mobile.css">
+  <!-- Parser Markdown -->
+  <script src="/static/js/marked.min.js"></script>
+</head>
+
+<body class="desktop-mode">
+
+  <!-- GLOBAL TOP NAVBAR (App Switcher) -->
+  <nav class="global-nav">
+    <a href="/" class="global-brand">
+      <span class="global-brand-logo">🎙️</span>
+      <span>Lektor Pro</span>
+      <span class="global-brand-badge" id="navBrandBadge" data-i18n="nav.audiobook">Audiobook</span>
+    </a>
+
+    <div class="global-nav-actions">
+    <div class="app-switcher">
+      <a href="/" class="app-btn active" id="navAudiobook" title="Odtwarzacz Audiobooka i Czytnik Stron" data-i18n-title="nav.audiobookTitle">
+        <span class="btn-icon">📚</span>
+        <span class="btn-label" data-i18n="nav.audiobook">Audiobook</span>
+      </a>
+      <a href="/studio" class="app-btn" id="navStudio" title="Generator Mowy z Kodu i Tekstu Markdown" data-i18n-title="nav.studioTitle">
+        <span class="btn-icon">📝</span>
+        <span class="btn-label" data-i18n="nav.studio">Studio TTS</span>
+      </a>
+    </div>
+    {% include "partials/locale_switcher.html" %}
+    </div>
+  </nav>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🎙️</div>
+      <div>
+        <div class="brand-title" data-i18n="audiobook.brandTitle">Lektor Pro Audiobook</div>
+        <div class="brand-subtitle" id="bookTitleSubtitle" data-i18n="audiobook.loading">Ładowanie audiobooka...</div>
+      </div>
+    </div>
+
+    <!-- Dynamiczny Selektor Książki -->
+    <div class="book-picker-container" style="display: flex; align-items: center; gap: 8px; margin: 0 16px;">
+      <span style="font-size: 1.1rem;" title="Aktywna książka" data-i18n-title="audiobook.activeBook">📖</span>
+      <select id="bookSelectDropdown" title="Zmień aktywną książkę w locie" data-i18n-title="audiobook.changeBook"
+        style="background: rgba(30, 41, 59, 0.85); color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 6px 12px; font-size: 0.88rem; font-weight: 500; cursor: pointer; outline: none; transition: border-color 0.2s;">
+        <option value="" data-i18n="audiobook.loadingBooks">Wczytywanie...</option>
+      </select>
+      <button class="btn-converter-trigger" id="btnOpenConverterModal"
+        title="Konwertuj książkę z PDF do Markdown (AI OCR & Mermaid)" data-i18n-title="audiobook.convertPdfTitle">
+        <span>⚡</span> <span data-i18n="audiobook.convertPdf">Konwertuj PDF</span>
+      </button>
+      <button class="btn-audio-modal-trigger" id="btnOpenAudioModal"
+        title="Otwórz panel zarządzania generowaniem audiobooka (synteza mowy, postęp)" data-i18n-title="audiobook.audioGenerationTitle">
+        <span>🎙️</span> <span data-i18n="audiobook.audioGeneration">Generowanie Audio</span>
+      </button>
+    </div>
+
+    <div class="header-controls">
+      <!-- Przełącznik Układu (Pozostawiony tylko podświetlony Pulpit) -->
+      <div class="status-badge" id="headerStatus" style="cursor: pointer;"
+        title="Kliknij, aby otworzyć panel generatora audio" data-i18n-title="audiobook.audioGenerationTitle">
+        <div class="status-pulse"></div>
+        <span id="readyCount">0</span> / <span id="totalCount">--</span> stron (<span id="headerPercent">0%</span>)
+      </div>
+
+      <button class="batch-btn-header batch-stop-header" id="btnHeaderBatchStop" style="display: none;"
+        title="Zatrzymaj trwające generowanie" data-i18n-title="audiobook.stopTitle">
+        <span class="stop-dot"></span> <span data-i18n="audiobook.stop">Zatrzymaj</span>
+      </button>
+      <button class="jump-btn" id="btnJumpLatest">
+        <span>⏩</span> <span data-i18n="audiobook.jumpLatest">Skocz do najnowszej</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Left Column -->
+    <div class="content-area">
+
+      <!-- Player Card -->
+      <div class="card player-card desktop-window" id="win-player" data-window="player">
+        <div class="window-titlebar">
+          <div class="window-title-group">
+            <span class="window-drag-grip">⋮⋮</span>
+            <span>🎙️</span>
+            <span class="window-title" data-i18n="player.title">Odtwarzacz Audiobooka</span>
+          </div>
+          <div class="window-controls">
+            <button class="win-btn win-btn-minimize" title="Minimalizuj / Zwiń" data-i18n-title="common.minimize">−</button>
+            <button class="win-btn win-btn-maximize" title="Maksymalizuj" data-i18n-title="common.maximize">□</button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="page-meta">
+            <div>
+              <span class="page-badge" id="playerPageBadge" data-i18n="player.page">STRONA 000</span>
+              <h1 class="page-title" id="playerPageTitle" data-i18n="player.loading">Wczytywanie...</h1>
+            </div>
+
+            <div class="mode-toggles">
+              <label class="mode-label" title="Po zakończeniu strony automatycznie przejdź do następnej" data-i18n-title="player.sequentialTitle">
+                <input type="radio" name="playMode" value="sequential" checked id="modeSequential">
+                <span data-i18n="player.sequential">Kolejno</span>
+              </label>
+              <label class="mode-label" title="Gdy tylko generator skończy nową stronę, natychmiast do niej przeskocz!" data-i18n-title="player.liveTitle">
+                <input type="radio" name="playMode" value="live" id="modeLive">
+                <span data-i18n="player.live">⚡ LIVE (zawsze najnowsza)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="timeline-container">
+            <div class="progress-bar-wrap" id="progressBar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="time-display">
+              <span id="currentTime">00:00</span>
+              <span id="totalDuration">00:00</span>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="player-controls">
+            <div class="primary-controls">
+              <button class="ctrl-btn" id="btnPrev" title="Poprzednia strona (Ctrl+Left)" data-i18n-title="player.previousTitle">⏮</button>
+              <button class="ctrl-btn" id="btnRewind" title="Cofnij 10s" data-i18n-title="player.rewindTitle">⏪</button>
+              <button class="ctrl-btn play-btn" id="btnPlay" title="Odtwórz / Pauza (Spacja)" data-i18n-title="player.playTitle">▶</button>
+              <button class="ctrl-btn" id="btnForward" title="Dalej 10s" data-i18n-title="player.forwardTitle">⏩</button>
+              <button class="ctrl-btn" id="btnNext" title="Następna strona (Ctrl+Right)" data-i18n-title="player.nextTitle">⏭</button>
+            </div>
+
+            <div class="speed-selector">
+              <button class="speed-btn" data-speed="0.8">0.8x</button>
+              <button class="speed-btn active" data-speed="1.0">1.0x</button>
+              <button class="speed-btn" data-speed="1.25">1.25x</button>
+              <button class="speed-btn" data-speed="1.5">1.5x</button>
+            </div>
+          </div>
+        </div>
+        <div class="win-resize-handle handle-se" title="Zmień rozmiar"></div>
+        <div class="win-resize-handle handle-e"></div>
+        <div class="win-resize-handle handle-s"></div>
+      </div>
+
+      <!-- Reader / Markdown Preview & Transcript Card -->
+      <div class="card reader-card desktop-window" id="win-reader" data-window="reader">
+        <div class="window-titlebar">
+          <div class="window-title-group">
+            <span class="window-drag-grip">⋮⋮</span>
+            <span>📄</span>
+            <span class="window-title" data-i18n="reader.title">Czytnik Markdown & Segmenty</span>
+          </div>
+          <div class="window-controls">
+            <button class="win-btn win-btn-minimize" title="Minimalizuj / Zwiń" data-i18n-title="common.minimize">−</button>
+            <button class="win-btn win-btn-maximize" title="Maksymalizuj" data-i18n-title="common.maximize">□</button>
+          </div>
+        </div>
+        <div class="window-body" id="readerCard">
+          <div class="reader-header">
+            <div class="reader-tabs">
+              <button class="reader-tab-btn active" id="btnTabMarkdown"
+                title="Wyświetl wyrenderowaną stronę z oryginalnego pliku Markdown" data-i18n-title="reader.markdownTabTitle">
+                <span>📄</span> <span data-i18n="reader.markdownTab">Strona .MD (Renderowana)</span>
+              </button>
+              <button class="reader-tab-btn" id="btnTabTranscript"
+                title="Wyświetl znormalizowany tekst z podziałem na segmenty mowy" data-i18n-title="reader.transcriptTabTitle">
+                <span>🗣️</span> <span data-i18n="reader.transcriptTab">Tekst Lektora (Segmenty)</span>
+              </button>
+            </div>
+            <div class="reader-meta">
+              <span class="reader-file-badge" id="readerFileName">page_000.md</span>
+              <span class="reader-lang-badge" id="readerLangBadge" title="Aktywny tryb językowy lektora" data-i18n-title="reader.languageTitle">🇵🇱🇬🇧
+                PL+EN</span>
+              <div class="reader-tools">
+                <button class="reader-tool-btn" id="btnFontDecrease" title="Zmniejsz czcionkę tekstu (A-)" data-i18n-title="reader.decreaseFontTitle">A-</button>
+                <button class="reader-tool-btn" id="btnFontIncrease" title="Zwiększ czcionkę tekstu (A+)" data-i18n-title="reader.increaseFontTitle">A+</button>
+                <button class="reader-tool-btn reader-expand-btn" id="btnExpandReader"
+                  title="Rozwiń okno podglądu na pełny ekran (klawisz Esc aby zamknąć)" data-i18n-title="reader.expandTitle">
+                  <span id="expandIcon">⛶</span>
+                  <span id="expandText" data-i18n="reader.expand">Powiększ</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rendered Markdown View (Default) -->
+          <div class="markdown-view" id="markdownContainer">
+            <p style="color: var(--text-dim);"><span data-i18n="reader.markdownPlaceholder">Wybierz stronę z listy po prawej stronie, aby wyświetlić wyrenderowany dokument Markdown...</span></p>
+          </div>
+
+          <!-- Normalized Transcript View (Secondary) -->
+          <div class="transcript-view" id="transcriptContainer" style="display: none;">
+            <p style="color: var(--text-dim);" data-i18n="reader.transcriptPlaceholder">Wybierz stronę z listy po prawej stronie, aby wyświetlić tekst...</p>
+          </div>
+        </div>
+        <div class="win-resize-handle handle-se" title="Zmień rozmiar"></div>
+        <div class="win-resize-handle handle-e"></div>
+        <div class="win-resize-handle handle-s"></div>
+      </div>
+    </div>
+
+    <!-- Right Column (Sidebar) -->
+    <div class="sidebar">
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tabPlaylistBtn" data-i18n="playlist.tab">Spis Stron</button>
+        <button class="tab-btn" id="tabNotesBtn">📝 <span data-i18n="notes.title">Notatnik</span></button>
+      </div>
+
+      <!-- Playlist Tab -->
+      <div class="card playlist-tab desktop-window" id="win-playlist" data-window="playlist">
+        <div class="window-titlebar">
+          <div class="window-title-group">
+            <span class="window-drag-grip">⋮⋮</span>
+            <span>📑</span>
+            <span class="window-title" data-i18n="playlist.title">Spis Stron & Playlista</span>
+          </div>
+          <div class="window-controls">
+            <button class="win-btn win-btn-minimize" title="Minimalizuj / Zwiń" data-i18n-title="common.minimize">−</button>
+            <button class="win-btn win-btn-maximize" title="Maksymalizuj" data-i18n-title="common.maximize">□</button>
+          </div>
+        </div>
+        <div class="window-body" id="playlistTab">
+          <input type="text" class="search-box" id="searchPages" placeholder="🔍 Szukaj strony lub tematu..." data-i18n-placeholder="playlist.search">
+          <div class="playlist-scroll" id="pagesList">
+            <!-- Wypełniane dynamicznie przez JS -->
+          </div>
+        </div>
+        <div class="win-resize-handle handle-se" title="Zmień rozmiar"></div>
+        <div class="win-resize-handle handle-e"></div>
+        <div class="win-resize-handle handle-s"></div>
+      </div>
+
+      <!-- Notes Tab / Window -->
+      <div class="card notes-tab desktop-window" id="win-notes" data-window="notes">
+        <div class="window-titlebar">
+          <div class="window-title-group">
+            <span class="window-drag-grip">⋮⋮</span>
+            <span>📝</span>
+            <span class="window-title" data-i18n="notes.title">Zeszyt & Notatki do nauki</span>
+          </div>
+          <div class="window-controls">
+            <button class="win-btn win-btn-minimize" title="Minimalizuj / Zwiń" data-i18n-title="common.minimize">−</button>
+            <button class="win-btn win-btn-maximize" title="Maksymalizuj" data-i18n-title="common.maximize">□</button>
+          </div>
+        </div>
+        <div class="window-body" id="notesTab">
+          <!-- Notes Header Bar -->
+          <div class="notes-header-bar">
+            <div class="notes-scope-group">
+              <button class="notes-scope-btn active" id="btnScopeGlobal" title="Notatnik ogólny do całej książki" data-i18n-title="notes.globalTitle">
+                <span>📓</span> <span data-i18n="notes.global">Zeszyt</span>
+              </button>
+              <button class="notes-scope-btn" id="btnScopePage" title="Notatka przypisana do aktualnej strony" data-i18n-title="notes.pageTitle">
+                <span id="noteScopeBadgeIcon">📌</span> <span id="noteScopeBadgeText" data-i18n="notes.page">Ta strona</span>
+              </button>
+            </div>
+
+            <div class="notes-tools">
+              <div class="notes-mobile-toggle" id="notesMobileToggle">
+                <button class="notes-mob-toggle-btn active" id="btnNotesMobEditor">✏️ <span data-i18n="notes.editor">Edytor</span></button>
+                <button class="notes-mob-toggle-btn" id="btnNotesMobPreview">👁️ <span data-i18n="notes.preview">Podgląd</span></button>
+              </div>
+              <button class="note-tool-btn" id="btnNoteQuote" title="Wklej cytat z bieżącego fragmentu strony" data-i18n-title="notes.quoteTitle">💬
+                <span data-i18n="notes.quote">Cytat</span></button>
+              <button class="note-tool-btn" id="btnNoteCode" title="Wstaw blok kodu Go" data-i18n-title="notes.code">⌨️ <span data-i18n="notes.code">Kod Go</span></button>
+              <button class="note-tool-btn" id="btnNoteList" title="Wstaw listę wypunktowaną" data-i18n-title="notes.list">• <span data-i18n="notes.list">Lista</span></button>
+              <button class="note-tool-btn" id="btnNoteTask" title="Wstaw zadanie (checkbox)" data-i18n-title="notes.task">✓ <span data-i18n="notes.task">Zadanie</span></button>
+              <button class="note-tool-btn" id="btnTogglePreview"
+                title="Przełącz podgląd wyrenderowanego Markdown" data-i18n-title="notes.previewTitle"><span>👁️</span> <span data-i18n="notes.preview">Podgląd</span></button>
+              <button class="note-tool-btn btn-save-note" id="btnSaveNotes"
+                title="Zapisz notatkę (Ctrl+S)" data-i18n-title="notes.saveTitle"><span>💾</span> <span data-i18n="notes.save">Zapisz</span></button>
+              <button class="note-tool-btn" id="btnExportNote" title="Pobierz notatkę jako plik .md" data-i18n-title="notes.downloadTitle"><span>📥</span>
+                <span data-i18n="notes.download">Pobierz</span></button>
+            </div>
+          </div>
+
+          <!-- Notes Content Wrap -->
+          <div class="notes-content-wrap">
+            <textarea class="notes-textarea" id="notesInput"
+              placeholder="Tutaj możesz zapisywać swoje notatki, przemyślenia, pytania i kod w Go podczas słuchania audiobooka (obsługuje Markdown)..." data-i18n-placeholder="notes.placeholder"></textarea>
+            <div class="notes-preview markdown-view" id="notesPreview" style="display: none;"></div>
+          </div>
+
+          <!-- Status Bar -->
+          <div class="notes-statusbar">
+            <span id="notesStatusText" data-i18n="notes.ready">Gotowy</span>
+            <span id="notesStatsCount">0 słów | 0 znaków</span>
+          </div>
+        </div>
+        <div class="win-resize-handle handle-se" title="Zmień rozmiar"></div>
+        <div class="win-resize-handle handle-e"></div>
+        <div class="win-resize-handle handle-s"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Pasek Zadań Pulpitu (Desktop Dock) -->
+  <div class="desktop-dock" id="desktopDock">
+    <button class="dock-item-btn" id="btnDockAudioGen" title="Otwórz panel zarządzania generowaniem audio" data-i18n-title="dock.showHide">
+      <span class="dock-dot"></span>
+      <span>📊 <span data-i18n="dock.generator">Generator</span></span>
+    </button>
+    <button class="dock-item-btn" data-target="win-player" title="Pokaż / Zwiń Odtwarzacz">
+      <span class="dock-dot"></span>
+      <span>🎙️ <span data-i18n="dock.player">Odtwarzacz</span></span>
+    </button>
+    <button class="dock-item-btn" data-target="win-reader" title="Pokaż / Zwiń Czytnik">
+      <span class="dock-dot"></span>
+      <span>📄 <span data-i18n="dock.reader">Czytnik</span></span>
+    </button>
+    <button class="dock-item-btn" data-target="win-playlist" title="Pokaż / Zwiń Spis Stron">
+      <span class="dock-dot"></span>
+      <span>📑 <span data-i18n="dock.playlist">Spis Stron</span></span>
+    </button>
+    <button class="dock-item-btn" data-target="win-notes" title="Pokaż / Zwiń Notatnik">
+      <span class="dock-dot"></span>
+      <span>📝 <span data-i18n="dock.notes">Notatki</span></span>
+    </button>
+    <div class="dock-divider"></div>
+    <button class="dock-action-btn" onclick="window.lektorDesktop?.applyPreset('cascade')" title="Ułóż w kaskadę" data-i18n-title="dock.cascadeTitle">🗂️
+      <span data-i18n="dock.cascade">Kaskada</span></button>
+    <button class="dock-action-btn" onclick="window.lektorDesktop?.applyPreset('reset')"
+      title="Zresetuj ułożenie okien pulpitu" data-i18n-title="dock.resetTitle">🔄 <span data-i18n="dock.reset">Resetuj</span></button>
+  </div>
+
+  <!-- Audio Element -->
+  <audio id="audioPlayer" preload="auto"></audio>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Tło pełnoekranowego trybu czytania -->
+  <div class="reader-backdrop" id="readerBackdrop" style="display: none;"></div>
+
+  <!-- Dołączone modułowe szablony okien modalnych -->
+  {% include "modals/confirm_modal.html" %}
+  {% include "modals/audiogen_modal.html" %}
+  {% include "modals/converter_modal.html" %}
+
+  <!-- Modularna logika JavaScript (ES Modules) -->
+  <script type="module" src="/static/js/app.js?v=20261009-i18n"></script>
+
+  <!-- Dołączona nawigacja mobilna -->
+  {% include "partials/mobile_nav.html" %}
+
+
+</body>
+
+</html>

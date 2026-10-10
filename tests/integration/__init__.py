@@ -1,0 +1,3 @@
+"""
+Testy integracyjne adapterów.
+"""

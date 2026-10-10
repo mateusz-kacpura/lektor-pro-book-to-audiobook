@@ -1,0 +1,8 @@
+/* Rejestr stylów komponentów interfejsu Lektor Pro */
+@import url('components/common.css');
+@import url('components/player.css');
+@import url('components/reader.css');
+@import url('components/playlist.css');
+@import url('components/generator.css?v=20261009-input-language-style');
+@import url('components/modals.css');
+@import url('components/converter_modal.css');

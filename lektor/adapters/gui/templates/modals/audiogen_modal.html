@@ -1,0 +1,161 @@
+<!-- Modal Zarządzania Generowaniem Pliku Audio (TTS & Synteza) -->
+<div class="modal-backdrop" id="audioGenModalBackdrop" style="display: none; z-index: 9998;">
+    <div class="modal-card audio-gen-modal-card">
+        <div class="audio-gen-header-row">
+            <div class="audio-gen-header-title-wrap">
+                <div class="audio-gen-icon-box">🎙️</div>
+                <div>
+                    <h2 class="audio-gen-title" data-i18n="audiobook.audioGeneratorTitle">Generator &amp; Postęp Syntezy Audio</h2>
+                    <p class="audio-gen-subtitle" data-i18n="audiobook.audioGeneratorSubtitle">Panel sterowania syntezą mowy TTS (OmniVoice AI), buforem segmentów i postępem całej książki</p>
+                </div>
+            </div>
+            <button class="conv-btn-close" id="btnAudioGenClose" title="Zamknij okno" data-i18n-title="common.close">✕</button>
+        </div>
+
+        <!-- Pasek Stanu Generatora -->
+        <div
+            style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="gen-pulse idle" id="genPulse"></span>
+                        <span id="genStatusText"
+                            style="font-weight: 700; font-size: 0.88rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">GENERATOR
+                            BEZCZYNNY / OCZEKUJE</span>
+                    </div>
+                    <div id="genActiveTask" style="font-size: 0.88rem; color: #cbd5e1; margin-top: 5px;">Ostatnia
+                        wygenerowana strona: <strong>brak</strong></div>
+                </div>
+                <div id="genPercent"
+                    style="font-size: 1.8rem; font-weight: 800; color: #38bdf8; font-family: 'JetBrains Mono', monospace;">
+                    0%</div>
+            </div>
+
+            <div
+                style="margin-top: 14px; height: 8px; background: rgba(255, 255, 255, 0.06); border-radius: 999px; overflow: hidden;">
+                <div class="gen-bar-fill" id="genBarFill"
+                    style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 999px; transition: width 0.3s ease;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Karta Aktualnie Generowanej Strony i Zdania -->
+        <div class="gen-stage-box idle" id="genStageBox"
+            style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div>
+                    <div
+                        style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                        <span style="color: #818cf8;">●</span> <span data-i18n="audiobook.activePageLabel">AKTUALNIE GENEROWANA STRONA</span>
+                    </div>
+                    <div id="stagePageName" data-i18n="audiobook.waiting"
+                        style="font-size: 1.05rem; font-weight: 700; color: #f1f5f9; margin-top: 4px;">Oczekiwanie</div>
+                </div>
+                <span id="stageStatusNote"
+                    style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; padding: 4px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 600;">●
+                    Bezczynny</span>
+            </div>
+
+            <div style="margin: 10px 0 14px 0;">
+                <div
+                    style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px;">
+                    <span><span data-i18n="audiobook.segmentProgress">Postęp bieżącego segmentu zdania</span></span>
+                    <span id="stageSegInfo" data-i18n="audiobook.waiting">Oczekiwanie</span>
+                </div>
+                <div
+                    style="height: 5px; background: rgba(255, 255, 255, 0.06); border-radius: 999px; overflow: hidden;">
+                    <div id="stageBarFill"
+                        style="width: 0%; height: 100%; background: #38bdf8; transition: width 0.2s;"></div>
+                </div>
+            </div>
+
+            <div
+                style="border-left: 3px solid #818cf8; background: rgba(99, 102, 241, 0.06); padding: 10px 14px; border-radius: 0 8px 8px 0;">
+                <div
+                    style="font-size: 0.72rem; font-weight: 700; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <span>🔊</span> <span data-i18n="audiobook.activeSentenceLabel">AKTUALNIE GENEROWANE ZDANIE / FRAZA:</span>
+                </div>
+                <div id="stageSentence" data-i18n="audiobook.noActiveSynthesis" style="font-size: 0.88rem; color: #94a3b8; font-style: italic;">Brak aktywnego
+                    generowania w tej chwili.</div>
+            </div>
+        </div>
+
+        <!-- Kafelki Statystyk (4 Kolumny) -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+            <div
+                style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 10px; padding: 12px 14px;">
+                <div
+                    style="font-size: 0.72rem; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">
+                    Ukończone strony</div>
+                <div id="statPagesReady"
+                    style="font-size: 1.15rem; font-weight: 700; color: #f1f5f9; font-family: 'JetBrains Mono', monospace;">
+                    0 / 0</div>
+            </div>
+            <div
+                style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 10px; padding: 12px 14px;">
+                <div
+                    style="font-size: 0.72rem; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">
+                    Łączny czas audio</div>
+                <div id="statTotalAudio"
+                    style="font-size: 1.15rem; font-weight: 700; color: #f1f5f9; font-family: 'JetBrains Mono', monospace;">
+                    0m 0s</div>
+            </div>
+            <div
+                style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 10px; padding: 12px 14px;">
+                <div
+                    style="font-size: 0.72rem; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">
+                    Szacowany czas (ETA)</div>
+                <div id="statEta"
+                    style="font-size: 1.15rem; font-weight: 700; color: #38bdf8; font-family: 'JetBrains Mono', monospace;">
+                    Zakończono / Bezczynny</div>
+            </div>
+            <div
+                style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 10px; padding: 12px 14px;">
+                <div
+                    style="font-size: 0.72rem; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">
+                    Głos lektora</div>
+                <div id="statVoiceName"
+                    style="font-size: 1.15rem; font-weight: 700; color: #f1f5f9; font-family: 'JetBrains Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    audio.wav</div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+            <div class="conv-metric-card"><div class="conv-metric-label"><span data-i18n="converter.lastPage">Czas ostatniej strony</span></div><div class="conv-metric-val" id="statLastPageTime">-- s</div></div>
+            <div class="conv-metric-card"><div class="conv-metric-label"><span data-i18n="converter.averagePage">Średni czas strony</span></div><div class="conv-metric-val" id="statAveragePageTime">-- s</div></div>
+            <div class="conv-metric-card"><div class="conv-metric-label"><span data-i18n="converter.vram">Pamięć VRAM</span></div><div class="conv-metric-val" id="statVram">-- / -- GB</div></div>
+            <div class="conv-metric-card"><div class="conv-metric-label"><span data-i18n="converter.gpu">Obciążenie GPU</span></div><div class="conv-metric-val" id="statGpu">--%</div></div>
+        </div>
+
+        <!-- Język wejściowy tekstu dla modelu TTS -->
+        <div class="batch-language-control" aria-labelledby="batchInputLanguageLabel">
+            <div class="batch-language-control__heading">
+                <label id="batchInputLanguageLabel" for="batchInputLanguage" data-i18n="converter.inputLanguage">🌐 Język wejściowy tekstu</label>
+                <span><span data-i18n="converter.inputLanguageHelp">Model otrzyma wybrany kod języka dla wszystkich segmentów tekstowych.</span></span>
+            </div>
+            <div class="batch-language-control__fields">
+                <select id="batchInputLanguage" aria-describedby="batchInputLanguageHint">
+                    <option value="auto" data-i18n="converter.autoLanguage">🌐 Automatyczne rozpoznawanie (polski + angielski)</option>
+                    <option value="pl">🇵🇱 Język polski</option>
+                    <option value="en">🇬🇧 Język angielski</option>
+                </select>
+                <input id="batchInputLanguageCustom" type="text" inputmode="text" maxlength="8"
+                    placeholder="Kod języka, np. de" data-i18n-placeholder="converter.customLanguagePlaceholder" autocomplete="off" hidden>
+            </div>
+            <span id="batchInputLanguageHint" data-i18n="converter.inputLanguageDefault">Domyślnie zachowane jest dotychczasowe rozpoznawanie polskiego i angielskiego tekstu.</span>
+        </div>
+        <!-- Przyciski akcji -->
+        <div
+            style="display: flex; gap: 12px; justify-content: flex-end; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px;">
+            <button class="modal-btn btn-modal-cancel" id="btnAudioGenDismiss"
+                style="padding: 10px 20px;"><span data-i18n="common.close">Zamknij</span></button>
+            <button class="conv-cancel-btn" id="btnStopBatch" style="display: none; padding: 10px 22px;">
+                <span>⏹</span> <span data-i18n="converter.stopSynthesis">Zatrzymaj generowanie</span>
+            </button>
+            <button class="conv-primary-btn" id="btnStartBatch"
+                style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 10px 24px;">
+                <span>🚀</span> <span data-i18n="converter.generateAll">Generuj wszystkie strony do końca</span>
+            </button>
+        </div>
+    </div>
+</div>

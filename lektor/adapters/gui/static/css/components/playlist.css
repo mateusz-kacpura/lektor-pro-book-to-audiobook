@@ -1,0 +1,165 @@
+/* Komponent playlisty oraz spisu stron */
+.tab-bar {
+    display: flex;
+    background: rgba(19, 27, 46, 0.7);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-subtle);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+.playlist-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 760px;
+}
+
+.search-box {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    color: white;
+    font-size: 0.88rem;
+}
+
+.search-box:focus {
+    outline: none;
+    border-color: var(--border-focus);
+}
+
+.playlist-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-right: 4px;
+}
+
+.page-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.page-item:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-subtle);
+}
+
+.page-item.active {
+    background: rgba(99, 102, 241, 0.12);
+    border-color: var(--primary);
+}
+
+.page-item.is-generating {
+    border-color: rgba(245, 158, 11, 0.5);
+    background: rgba(245, 158, 11, 0.08);
+}
+
+.page-item-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.page-item-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: #818cf8;
+    background: rgba(99, 102, 241, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.page-item-name {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 210px;
+}
+
+.badge-ready {
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 8px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+}
+
+.badge-generating {
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    animation: pulse 1.5s infinite;
+}
+
+.badge-pending {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+}
+
+.playlist-empty-state {
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--text-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.playlist-empty-state .empty-icon {
+    font-size: 2.2rem;
+    opacity: 0.6;
+}
+
+.playlist-empty-state h4 {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.playlist-empty-state p {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    max-width: 280px;
+}

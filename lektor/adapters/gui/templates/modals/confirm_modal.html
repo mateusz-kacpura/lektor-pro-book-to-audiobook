@@ -1,0 +1,32 @@
+<!-- Confirmation Modal Dialog -->
+<div class="modal-backdrop" id="confirmModalBackdrop" style="display: none; z-index: 10005;">
+    <div class="modal-card">
+        <div class="modal-icon-wrap" id="modalIconWrap">🚀</div>
+        <h2 class="modal-title" id="modalTitle"><span data-i18n="audiobook.confirmTitle">Rozpocząć generowanie całej książki?</span></h2>
+        <p class="modal-desc" id="modalDesc"><span data-i18n="audiobook.confirmDescription">Czy na pewno chcesz uruchomić syntezę wszystkich stron?</span></p>
+
+        <div class="modal-info-box" id="modalInfoBox">
+            <div class="modal-info-row">
+                <span class="modal-info-label"><span data-i18n="audiobook.remainingPages">Pozostało do wygenerowania:</span></span>
+                <span class="modal-info-val" id="modalPagesRemaining">-- stron</span>
+            </div>
+            <div class="modal-info-row">
+                <span class="modal-info-label"><span data-i18n="audiobook.selectedVoice">Wybrany lektor / głos:</span></span>
+                <span class="modal-info-val" id="modalVoiceName">audio.wav (PL)</span>
+            </div>
+            <div class="modal-info-row">
+                <span class="modal-info-label"><span data-i18n="audiobook.conversionLanguage">Wersja językowa:</span></span>
+                <span class="modal-info-val" id="modalLangMode" style="color: #a78bfa;">Dwujęzyczny (PL + EN)</span>
+            </div>
+            <div class="modal-info-row">
+                <span class="modal-info-label"><span data-i18n="audiobook.acceleration">Akceleracja:</span></span>
+                <span class="modal-info-val" style="color: #38bdf8;">NVIDIA CUDA (GPU)</span>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="modal-btn btn-modal-cancel" id="btnModalCancel" data-i18n="common.cancel">Anuluj</button>
+            <button class="modal-btn btn-modal-confirm" id="btnModalConfirm" data-i18n="common.confirm">Potwierdź</button>
+        </div>
+    </div>
+</div>

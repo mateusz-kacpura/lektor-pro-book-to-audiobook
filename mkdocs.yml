@@ -1,0 +1,166 @@
+site_name: Lektor Pro — Dokumentacja Techniczna
+site_description: Kompleksowa dokumentacja techniczna, architektoniczna i operacyjna platformy Lektor Pro.
+site_author: Mateusz Kacpura
+site_url: https://mateusz-kacpura.github.io/lektor-pro-book-to-audiobook/
+
+theme:
+  name: material
+  language: pl
+  palette:
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Przełącz na tryb jasny
+    - scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Przełącz na tryb ciemny
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+plugins:
+  - search
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+        - locale: pl
+          name: Polski
+          default: false
+          build: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+
+nav:
+  - Strona główna: index.md
+  - 1. Architektura Systemu:
+      - C4 Model:
+          - 1.1 Kontekst Systemu: 01-architecture/c4-model/01-system-context.md
+          - 1.2 Diagram Kontenerów: 01-architecture/c4-model/02-container-diagram.md
+          - 1.3 Diagram Komponentów: 01-architecture/c4-model/03-component-diagrams.md
+          - 1.4 Topologia Sieciowa: 01-architecture/c4-model/04-deployment-topology.md
+      - Czysta Architektura:
+          - Przepływ Zależności (DIP): 01-architecture/clean-architecture/dependency-rule-enforcement.md
+          - Granice Warstw i Kontrakty: 01-architecture/clean-architecture/layer-boundaries-contracts.md
+          - Composition Root (IoC): 01-architecture/clean-architecture/composition-root-ioc.md
+      - Decyzje Architektoniczne (ADR):
+          - ADR-001 Ścisłe Typowanie: 01-architecture/adr/adr-001-clean-architecture-type-safety.md
+          - ADR-002 Arbitraż VRAM: 01-architecture/adr/adr-002-vram-arbiter-preemption.md
+          - ADR-003 Magazyn Danych SSOT: 01-architecture/adr/adr-003-single-source-of-truth-filesystem.md
+          - ADR-004 Native Vanilla JS: 01-architecture/adr/adr-004-native-vanilla-esm-ui.md
+  - 2. Rdzeń Domeny i Reguły:
+      - Reguły Biznesowe (BR):
+          - BR 001-005 Katalog i Slugi: 02-domain-core/business-rules/br-001-to-005-catalog-and-slugs.md
+          - BR 006-010 Normalizacja i Słownik: 02-domain-core/business-rules/br-006-to-010-text-normalization-and-glossary.md
+          - BR 011-015 Odporność Konwersji: 02-domain-core/business-rules/br-011-to-015-conversion-pipeline-resilience.md
+          - BR 016-020 Synteza i Pamięć Podręczna: 02-domain-core/business-rules/br-016-to-020-audio-synthesis-and-caching.md
+      - Encje i Value Objects:
+          - Modele Książki i Ścieżek: 02-domain-core/entities-and-vo/book-and-path-models.md
+          - Maszyna Stanów Konwersji: 02-domain-core/entities-and-vo/conversion-lifecycle-state-machine.md
+          - Parametry Audio i Mowy: 02-domain-core/entities-and-vo/audio-and-speech-specs.md
+      - Normalizacja Tekstu:
+          - Fonetyzacja Kodu Go: 02-domain-core/normalization-specs/go-grammar-verbalization.md
+          - Słownik i Akronimy IT: 02-domain-core/normalization-specs/polish-phonetics-and-acronyms.md
+          - Liczby, Daty i Porządki: 02-domain-core/normalization-specs/numbers-dates-and-ordinals.md
+          - Czyszczenie Markdown: 02-domain-core/normalization-specs/markdown-stripping-rules.md
+      - Walidacja Integralności:
+          - Integralność Markdown: 02-domain-core/validation/markdown-integrity-rules.md
+          - Składnia Diagramów Mermaid: 02-domain-core/validation/mermaid-syntax-contract.md
+  - 3. Przepływy Aplikacyjne:
+      - Przypadki Użycia (Use Cases):
+          - UC Podział i Import PDF: 03-application-workflows/use-cases/uc-pdf-import-and-splitting.md
+          - UC Tłumaczenie Wizyjne AI: 03-application-workflows/use-cases/uc-vision-ai-translation.md
+          - UC Synteza Strony i Batch: 03-application-workflows/use-cases/uc-speech-synthesis-page-and-batch.md
+          - UC Studio Snippet TTS: 03-application-workflows/use-cases/uc-studio-snippet-synthesis.md
+          - UC Przełączanie Książek: 03-application-workflows/use-cases/uc-book-context-switching.md
+      - Rejestr Portów:
+          - Porty Audio: 03-application-workflows/ports-inventory/audio-ports-protocols.md
+          - Porty OCR i Vision: 03-application-workflows/ports-inventory/ocr-vision-ports-protocols.md
+          - Porty Magazynów Danych: 03-application-workflows/ports-inventory/storage-ports-protocols.md
+          - Porty Zasobów GPU: 03-application-workflows/ports-inventory/resource-ports-protocols.md
+          - Porty Telemetrii: 03-application-workflows/ports-inventory/telemetry-ports-protocols.md
+      - Telemetria i Zdarzenia:
+          - Strumienie SSE: 03-application-workflows/telemetry-and-events/sse-event-stream-protocol.md
+          - Stan Generatora na Dysku: 03-application-workflows/telemetry-and-events/live-task-state-persistence.md
+  - 4. Adaptery i Integracje:
+      - Web GUI (FastAPI & JS):
+          - Routery i DTO FastAPI: 04-adapters-and-interfaces/web-gui/fast-api-routing-and-dtos.md
+          - Wstrzykiwanie Zależności: 04-adapters-and-interfaces/web-gui/dependency-injection-state.md
+          - Bezpieczeństwo Wątkowe Zadań: 04-adapters-and-interfaces/web-gui/job-execution-thread-safety.md
+          - Odtwarzacz Audio (HTML5): 04-adapters-and-interfaces/web-gui/client-side-audio-player.md
+          - Menedżer Okien Pulpitu: 04-adapters-and-interfaces/web-gui/desktop-workspace-window-manager.md
+          - Lokalizacja Interfejsu: 04-adapters-and-interfaces/web-gui/interface-localization.md
+      - CLI:
+          - Dyspozytor Poleceń i Flagi: 04-adapters-and-interfaces/cli/command-dispatch-and-arguments.md
+          - Raportowanie Konsolowe: 04-adapters-and-interfaces/cli/console-telemetry-reporters.md
+      - AI Vision:
+          - PyMuPDF Renderer: 04-adapters-and-interfaces/ai-vision/pymupdf-renderer-adapter.md
+          - Multimodalny Klient OpenAI: 04-adapters-and-interfaces/ai-vision/openai-compatible-multimodal-adapter.md
+      - AI TTS i Audio:
+          - Uniwersalny Silnik TTS: 04-adapters-and-interfaces/ai-tts/universal-engine-backend-dispatch.md
+          - Cache SHA-256: 04-adapters-and-interfaces/ai-tts/content-addressable-cache-sha256.md
+          - Filtracja DSP i Silero VAD: 04-adapters-and-interfaces/ai-tts/silero-vad-dsp-cleaner.md
+      - Magazyny Danych:
+          - Repozytorium Książek: 04-adapters-and-interfaces/persistence/file-system-book-repository.md
+          - Repozytorium Stron: 04-adapters-and-interfaces/persistence/file-system-page-repository.md
+          - Repozytorium Studio: 04-adapters-and-interfaces/persistence/studio-history-repository.md
+  - 5. Operacje i Infrastruktura:
+      - Arbitraż Pamięci VRAM:
+          - Silnik Wzajemnego Wykluczania: 05-operations-and-infrastructure/vram-arbiter-runtime/mutual-exclusion-engine.md
+          - Cykl Życia llama-server: 05-operations-and-infrastructure/vram-arbiter-runtime/llama-server-lifecycle-manager.md
+          - Czyszczenie Pamięci PyTorch CUDA: 05-operations-and-infrastructure/vram-arbiter-runtime/pytorch-cuda-memory-eviction.md
+      - Modele AI:
+          - Specyfikacja Modeli Vision: 05-operations-and-infrastructure/ai-models-catalog/vision-models-spec-gemma-qwen.md
+          - Specyfikacja Modeli TTS: 05-operations-and-infrastructure/ai-models-catalog/tts-models-spec-omnivoice-chatterbox.md
+      - Diagnostyka i Benchmarki:
+          - Wykrywanie Wycieków Pamięci: 05-operations-and-infrastructure/diagnostics-and-benchmarking/memory-leak-profiling-protocol.md
+          - Progi Alokacji Sterty i RAM: 05-operations-and-infrastructure/diagnostics-and-benchmarking/heap-and-working-set-thresholds.md
+          - Telemetria GPU NVIDIA: 05-operations-and-infrastructure/diagnostics-and-benchmarking/gpu-telemetry-adapter.md
+      - Instrukcje Operacyjne (Runbooks):
+          - Rozwiązywanie Błędów CUDA OOM: 05-operations-and-infrastructure/runbooks/vram-oom-recovery.md
+          - Czyszczenie Procesów Sierocych: 05-operations-and-infrastructure/runbooks/orphaned-process-cleanup.md
+          - Konfiguracja Środowiska .env: 05-operations-and-infrastructure/runbooks/environment-configuration-env.md
+  - 6. Inżynieria i Jakość Kodu:
+      - System Typów:
+          - Polityka Zero-Any: 06-quality-and-engineering/type-system/zero-any-policy.md
+          - Identyfikatory NewType: 06-quality-and-engineering/type-system/newtype-strong-identifiers.md
+          - Ścisła Konfiguracja mypy: 06-quality-and-engineering/type-system/mypy-strict-enforcement.md
+      - Piramida Testów:
+          - Izolacja Testów Domeny: 06-quality-and-engineering/test-pyramid/unit-domain-isolation.md
+          - Testy Przypadków Użycia (Fakes): 06-quality-and-engineering/test-pyramid/unit-application-fakes.md
+          - Testy Integracyjne Adapterów: 06-quality-and-engineering/test-pyramid/integration-adapters.md
+          - Testy End-to-End: 06-quality-and-engineering/test-pyramid/e2e-blackbox-workflows.md
+          - Testy Benchmarkowe: 06-quality-and-engineering/test-pyramid/benchmark-regression-testing.md

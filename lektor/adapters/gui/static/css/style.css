@@ -1,0 +1,5 @@
+/* Główny arkusz stylów Lektor Pro - importujący zmodularyzowane pliki CSS */
+@import url('variables.css');
+@import url('base.css');
+@import url('layout.css');
+@import url('components.css?v=20261009-input-language-style');

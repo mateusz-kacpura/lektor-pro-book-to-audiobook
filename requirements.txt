@@ -1,0 +1,45 @@
+# Lektor Pro runtime and development dependencies
+# Supported Python: 3.14+
+#
+# Install CUDA-enabled PyTorch separately using the command generated at:
+# https://pytorch.org/get-started/locally/
+# This avoids forcing one CUDA wheel on every operating system/GPU.
+
+# Core audio, numerical processing, and text
+numpy>=2.0.0
+scipy>=1.14.0
+soundfile>=0.13.0
+librosa>=0.10.2
+noisereduce>=3.0.3
+num2words>=0.5.14
+
+# GPU and audio-model runtime
+torch>=2.2.0
+torchaudio>=2.2.0
+
+# Web GUI and API
+fastapi>=0.115.0
+uvicorn>=0.30.0
+pydantic>=2.8.0
+python-multipart>=0.0.9
+jinja2>=3.1.4
+
+# PDF, vision API, and model support
+pymupdf>=1.25.0
+httpx>=0.27.0
+transformers>=4.40.0
+pillow>=10.0.0
+
+# Tests and code quality
+pytest>=8.2.0
+mypy>=1.11.0
+ruff>=0.6.0
+pre-commit>=3.8.0
+scipy-stubs>=1.18.0
+
+# Optional model backends:
+# Chatterbox Multilingual backend (required for real TTS; tested upstream on Python 3.11)
+chatterbox-tts>=0.1.7
+# omnivoice            # Required only when the OmniVoice backend is enabled.
+
+

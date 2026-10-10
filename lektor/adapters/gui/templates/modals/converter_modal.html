@@ -1,0 +1,230 @@
+<!-- Converter & Live OCR Telemetry Modal Dialog -->
+<div class="modal-backdrop" id="converterModalBackdrop" style="display: none; z-index: 9999;">
+    <div class="modal-card converter-modal-card">
+        <div class="conv-header-row">
+            <div class="conv-header-title-wrap">
+                <div class="conv-icon-box">⚡</div>
+                <div>
+                    <h2 class="conv-title" data-i18n="converter.title">Konwerter Książki PDF → Markdown (AI OCR)</h2>
+                    <p class="conv-subtitle" data-i18n="converter.subtitle">Import dowolnego pliku PDF, automatyczny odczyt stron, konwersja do skanów 300 DPI oraz ekstrakcja AI (Gemma 4 / Qwen2.5-VL)</p>
+                </div>
+            </div>
+            <button class="conv-btn-close" id="btnConvClose" title="Zamknij okno" data-i18n-title="converter.closeTitle">✕</button>
+        </div>
+
+        <!-- KROK 1: Import Nowego Pliku PDF -->
+        <div class="conv-import-card" id="convImportCard"
+            style="background: rgba(15, 23, 42, 0.7); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong style="color: #cbd5e1; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                    <span>📥</span> <span data-i18n="converter.stepImport">Krok 1: Import nowego pliku PDF (dowolna książka z dysku)</span>
+                </strong>
+                <span style="font-size: 0.78rem; color: #94a3b8;"><span data-i18n="converter.structure">Tworzy dedykowaną strukturę katalogów w books/</span></span>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="file" id="convPdfFileInput" accept=".pdf" style="display: none;">
+                <button type="button" class="modal-btn" id="btnSelectPdfFile"
+                    style="background: #334155; color: #fff; padding: 8px 14px; border-radius: 8px; cursor: pointer; border: 1px solid #475569; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;">
+                    <span>📂</span> <span data-i18n="converter.selectPdf">Wybierz plik PDF</span>
+                </button>
+                <span id="convSelectedFileName"
+                    style="color: #94a3b8; font-size: 0.85rem; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Nie
+                    wybrano pliku</span>
+                <input type="text" id="convNewBookTitle" placeholder="Tytuł nowej książki (opcjonalny)" data-i18n-placeholder="converter.newBookTitle"
+                    style="background: #0f172a; color: #f1f5f9; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; flex: 1; min-width: 160px;">
+                <button type="button" class="conv-primary-btn" id="btnUploadPdfToCurrent" data-i18n-title="converter.assignCurrentTitle"
+                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 8px 14px; font-size: 0.85rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);"
+                    disabled title="Przypisz ten plik PDF do obecnie wybranej książki">
+                    <span>📎</span> <span data-i18n="converter.assignCurrent">Przypisz do bieżącej</span>
+                </button>
+                <button type="button" class="conv-primary-btn" id="btnUploadPdf" data-i18n-title="converter.createBookTitle"
+                    style="padding: 8px 14px; font-size: 0.85rem;" disabled
+                    title="Utwórz zupełnie nową książkę z tego pliku PDF">
+                    <span>➕</span> <span data-i18n="converter.createBook">Utwórz nową książkę</span>
+                </button>
+            </div>
+            <div id="convUploadStatus" style="font-size: 0.82rem; margin-top: 8px; display: none;"></div>
+        </div>
+
+        <!-- KROK 2: Karta Informacyjna Książki i Liczba Stron -->
+        <div class="conv-info-banner" style="margin-bottom: 16px;">
+            <div class="conv-info-top">
+                <span class="conv-book-title" id="convBookTitle">Wczytywanie informacji o książce...</span>
+                <span class="conv-status-pill" id="convStatusPill"><span data-i18n="converter.checkingPdf">Sprawdzanie PDF…</span></span>
+            </div>
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; gap: 10px;">
+                <div class="conv-pdf-path" id="convPdfPath"
+                    style="margin-top: 0; font-size: 0.78rem; color: #64748b; font-family: 'JetBrains Mono', monospace; word-break: break-all; flex: 1;">
+                    --</div>
+                <button type="button" id="btnChangePdfForCurrent"
+                    style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; font-weight: 500;"><span data-i18n="converter.changePdf">📂 Zmień / Wskaż PDF</span></button>
+            </div>
+
+            <!-- Wyróżniony Kafelek Liczby Stron -->
+            <div
+                style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 12px 16px; margin-top: 10px; display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 12px;">
+                <div style="text-align: center;">
+                    <div
+                        style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600; letter-spacing: 0.04em;"><span data-i18n="converter.pdfPages">📄 Liczba stron w dokumencie PDF</span></div>
+                    <div
+                        style="font-size: 1.6rem; font-weight: 800; color: #38bdf8; font-family: 'JetBrains Mono', monospace; margin-top: 2px;">
+                        <span id="convTotalPdfPages">--</span> <span data-i18n="converter.pages">stron</span>
+                    </div>
+                </div>
+                <div style="width: 1px; height: 36px; background: rgba(255, 255, 255, 0.1);"></div>
+                <div style="text-align: center;">
+                    <div
+                        style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600; letter-spacing: 0.04em;"><span data-i18n="converter.renderedScans">🖼️ Wyrenderowane skany JPG</span></div>
+                    <div
+                        style="font-size: 1.6rem; font-weight: 800; color: #34d399; font-family: 'JetBrains Mono', monospace; margin-top: 2px;">
+                        <span id="convScansCount">0</span> <span data-i18n="converter.scans">skanów</span>
+                    </div>
+                </div>
+                <div style="width: 1px; height: 36px; background: rgba(255, 255, 255, 0.1);"></div>
+                <div style="text-align: center;">
+                    <div
+                        style="font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600; letter-spacing: 0.04em;"><span data-i18n="converter.markdownFiles">📁 Pliki Markdown (.md)</span></div>
+                    <div
+                        style="font-size: 1.6rem; font-weight: 800; color: #a78bfa; font-family: 'JetBrains Mono', monospace; margin-top: 2px;">
+                        <span id="convPagesCount">0</span> <span data-i18n="converter.pages">stron</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KROK 3: Konwersja PDF do skanów JPG & Ekstrakcja AI -->
+        <div class="conv-config-card" id="convConfigCard">
+            <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                <strong style="color: #cbd5e1; font-size: 0.92rem; display: flex; align-items: center; gap: 6px;">
+                    <span>🖼️</span> <span data-i18n="converter.stepConvert">Krok 2: Konwersja stron PDF do skanów JPG (300 DPI)</span>
+                </strong>
+                <span style="font-size: 0.78rem; color: #38bdf8;" data-i18n="converter.requiredBeforeAI">Wymagane przed uruchomieniem modelu AI</span>
+            </div>
+
+            <div class="conv-config-grid">
+                <div class="conv-field">
+                    <label for="convStartPage"><span data-i18n="converter.fromPage">Strona początkowa (Od):</span></label>
+                    <input type="number" id="convStartPage" min="1" value="1" placeholder="np. 1">
+                </div>
+                <div class="conv-field">
+                    <label for="convEndPage"><span data-i18n="converter.toPage">Strona końcowa (Do):</span></label>
+                    <input type="number" id="convEndPage" min="1" placeholder="np. 385 (cała książka)">
+                </div>
+                <div class="conv-field">
+                    <label for="convDpi"><span data-i18n="converter.scanResolution">Rozdzielczość skanów:</span></label>
+                    <select id="convDpi">
+                        <option value="300" selected>300 DPI (Wydawnicza ostrość tekstu i kodu - Zalecane)</option>
+                        <option value="200" data-i18n="converter.resolution200">200 DPI (Szybki podgląd)</option>
+                    </select>
+                </div>
+                <div class="conv-field">
+                    <label for="convModelName"><span data-i18n="converter.model">Model AI Vision (Krok 3 OCR):</span></label>
+                    <input type="text" id="convModelName" placeholder="Domyślny (.env: google/gemma-4-12b)" data-i18n-placeholder="converter.modelPlaceholder"
+                        title="Możesz wpisać dowolny model multimodalny np. google/gemma-4-12b, qwen2.5-vl:7b, meta-llama/llama-3.2-11b-vision itp.">
+                </div>
+                <div class="conv-field">
+                    <label for="convTargetLang"><span data-i18n="converter.targetLanguage">Język docelowy Markdown (140+ języków):</span></label>
+                    <select id="convTargetLang"
+                        style="background: rgba(30, 41, 59, 0.85); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 8px 12px; color: #ffffff; font-size: 0.9rem; outline: none;">
+                        <option value="pl" selected data-i18n="converter.targetPolish">🇵🇱 Język polski (Polish)</option>
+                        <option value="en" data-i18n="converter.targetEnglish">🇬🇧 Język angielski (English)</option>
+                        <option value="de" data-i18n="converter.targetGerman">🇩🇪 Język niemiecki (German)</option>
+                        <option value="es" data-i18n="converter.targetSpanish">🇪🇸 Język hiszpański (Spanish)</option>
+                        <option value="fr" data-i18n="converter.targetFrench">🇫🇷 Język francuski (French)</option>
+                        <option value="it" data-i18n="converter.targetItalian">🇮🇹 Język włoski (Italian)</option>
+                        <option value="uk" data-i18n="converter.targetUkrainian">🇺🇦 Język ukraiński (Ukrainian)</option>
+                        <option value="ja" data-i18n="converter.targetJapanese">🇯🇵 Język japoński (Japanese)</option>
+                        <option value="zh" data-i18n="converter.targetChinese">🇨🇳 Język chiński (Chinese)</option>
+                        <option value="pt" data-i18n="converter.targetPortuguese">🇵🇹 Język portugalski (Portuguese)</option>
+                        <option value="custom" data-i18n="converter.otherLanguage">🌐 Inny język (wpisz kod / nazwę)...</option>
+                    </select>
+                    <input type="text" id="convCustomTargetLang"
+                        placeholder="Wpisz kod ISO lub nazwę języka (np. cs, no, fi, sv)" data-i18n-placeholder="converter.customLanguagePlaceholder"
+                        style="display: none; margin-top: 6px; background: rgba(15, 23, 42, 0.85); border: 1px solid #38bdf8; border-radius: 8px; padding: 6px 10px; color: #fff; font-size: 0.85rem;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label class="conv-checkbox-label">
+                    <input type="checkbox" id="convSkipExisting" checked>
+                    <span><strong>Pomiń już wygenerowane strony</strong> (nie generuj ponownie istniejących plików
+                        .md)</span>
+                </label>
+            </div>
+
+            <div class="conv-actions-bar"
+                style="display: flex; gap: 10px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                <button type="button" class="conv-primary-btn" id="btnRenderScans"
+                    style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding: 10px 18px; border: none; font-weight: 700; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+                    <span>🖼️</span> <span data-i18n="converter.renderScans">Konwertuj PDF do JPG (300 DPI)</span>
+                </button>
+                <button class="conv-primary-btn" id="btnStartConversion" style="padding: 10px 18px;">
+                    <span>🚀</span> <span data-i18n="converter.startConversion">Uruchom pełną konwersję (AI)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel Telemetrii na Żywo (SSE) -->
+        <div class="conv-telemetry-panel" id="convTelemetryPanel" style="display: none;">
+            <div class="conv-progress-header">
+                <div>
+                    <div class="conv-state-badge" id="convStateBadge">
+                        <span class="gen-pulse"></span>
+                        <span id="convStateText"><span data-i18n="converter.initializing">INICJALIZACJA…</span></span>
+                    </div>
+                    <div class="conv-step-desc" id="convStepDesc"><span data-i18n="converter.preparing">Przygotowanie zadania…</span></div>
+                </div>
+                <div class="conv-progress-pct" id="convProgressPct">0.0%</div>
+            </div>
+
+            <!-- Pasek postępu -->
+            <div class="conv-progress-bar-wrap">
+                <div class="conv-progress-bar-fill" id="convProgressFill"></div>
+            </div>
+
+            <!-- 6 Kafelków Metryk w czasie rzeczywistym -->
+            <div class="conv-metrics-grid">
+                <div class="conv-metric-card">
+                    <div class="conv-metric-label"><span data-i18n="converter.speed">⚡ Prędkość AI</span></div>
+                    <div class="conv-metric-val speed" id="convMetricSpeed">-- tok/s</div>
+                </div>
+                <div class="conv-metric-card">
+                    <div class="conv-metric-label"><span data-i18n="converter.lastPage">⏱️ Czas na stronę</span></div>
+                    <div class="conv-metric-val" id="convMetricSecPage">-- s / str.</div>
+                </div>
+                <div class="conv-metric-card">
+                    <div class="conv-metric-label"><span data-i18n="converter.estimatedEta">⌛ Szacowane ETA</span></div>
+                    <div class="conv-metric-val eta" id="convMetricEta">--:--</div>
+                </div>
+                <div class="conv-metric-card">
+                    <div class="conv-metric-label"><span data-i18n="converter.totalTime">⌛ Czas łączny</span></div>
+                    <div class="conv-metric-val" id="convMetricElapsed">00:00</div>
+                </div>
+                <div class="conv-metric-card">
+                    <div class="conv-metric-label"><span data-i18n="converter.vram">💾 Pamięć VRAM</span></div>
+                    <div class="conv-metric-val gpu" id="convMetricVram">-- / -- GB</div>
+                </div>
+                <div class="conv-metric-card">
+                    <div class="conv-metric-label"><span data-i18n="converter.gpu">⚡ Obciążenie GPU</span></div>
+                    <div class="conv-metric-val gpu" id="convMetricGpu">--%</div>
+                </div>
+            </div>
+
+            <!-- Dziennik Zdarzeń (Terminal) -->
+            <div class="conv-terminal" id="convTerminal">
+                <div class="conv-terminal-line"><span class="t-time">[00:00:00]</span> <span
+                        class="t-info">Inicjalizacja telemetrii konwertera...</span></div>
+            </div>
+
+            <div class="conv-actions-bar">
+                <button class="conv-cancel-btn" id="btnConvStop">
+                    <span>⏹</span> <span data-i18n="converter.stop">Zatrzymaj konwersję</span>
+                </button>
+                <button class="conv-primary-btn" id="btnConvFinish" style="display: none;">
+                    <span>✅</span> <span data-i18n="converter.conversionFinished">Zakończono — Odśwież książkę</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

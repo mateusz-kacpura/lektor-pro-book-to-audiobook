@@ -1,0 +1,666 @@
+/* ==========================================================================
+   Lektor Pro — Desktop Window Workspace & Drag-and-Drop System
+   ========================================================================== */
+
+/* --- Layout Switcher w nagłówku --- */
+.layout-switcher {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 3px;
+  margin-right: 8px;
+}
+
+.layout-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.layout-toggle-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.layout-toggle-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+.layout-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.layout-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.layout-dropdown-trigger:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.layout-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #0d1527;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: var(--radius-md);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(99, 102, 241, 0.2);
+  min-width: 220px;
+  padding: 6px;
+  z-index: 1000;
+  backdrop-filter: blur(20px);
+  animation: fadeInModal 0.15s ease forwards;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(99, 102, 241, 0.18);
+  color: #ffffff;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 4px 0;
+}
+
+/* ==========================================================================
+   TRYB PULPITU (DESKTOP MODE)
+   ========================================================================== */
+
+body.desktop-mode {
+  overflow: hidden;
+}
+
+body.desktop-mode main {
+  position: relative;
+  display: block !important;
+  max-width: none !important;
+  width: 100vw !important;
+  height: calc(100vh - 66px) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  background: 
+    radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.07) 0%, transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+    #080c16 !important;
+}
+
+/* Przezroczyste kontenery kolumn w trybie pulpitu (dzieci stają się bezpośrednimi oknami na pulpicie) */
+body.desktop-mode .content-area,
+body.desktop-mode .sidebar {
+  display: contents !important;
+}
+
+/* Uniwersalna klasa okna pulpitu */
+.desktop-window {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Pasek tytułowy okna */
+.window-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(13, 19, 34, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  user-select: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.window-titlebar:active {
+  cursor: grabbing;
+}
+
+.window-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.window-drag-grip {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  letter-spacing: -1px;
+}
+
+.window-title {
+  color: var(--text-main);
+  letter-spacing: 0.01em;
+}
+
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.win-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.win-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.win-btn-minimize:hover {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.win-btn-maximize:hover {
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+/* W trybie siatki paski tytułowe są eleganckimi nagłówkami sekcji */
+body:not(.desktop-mode) .window-titlebar {
+  cursor: default;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+body:not(.desktop-mode) .window-drag-grip,
+body:not(.desktop-mode) .window-controls {
+  display: none;
+}
+
+/* --- Zachowanie okna w trybie pulpitu --- */
+body.desktop-mode .desktop-window {
+  position: absolute !important;
+  display: flex !important;
+  flex-direction: column !important;
+  margin: 0 !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.07);
+  z-index: 10;
+  max-width: none !important;
+  overflow: hidden !important;
+}
+
+/* Okno aktywne (wywindowane na wierzch) */
+body.desktop-mode .desktop-window.is-focused {
+  border-color: rgba(99, 102, 241, 0.5) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 25px rgba(99, 102, 241, 0.25), 0 0 0 1.5px rgba(99, 102, 241, 0.5) !important;
+}
+
+body.desktop-mode .desktop-window.is-focused .window-titlebar {
+  background: rgba(18, 25, 45, 0.98);
+}
+
+body.desktop-mode .desktop-window.is-focused .window-title {
+  color: #ffffff;
+}
+
+/* Treść wewnątrz okna pulpitu */
+body.desktop-mode .desktop-window > .window-body {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  min-height: 0;
+}
+
+/* Zminimalizowane okno */
+body.desktop-mode .desktop-window.is-minimized {
+  height: 40px !important;
+  min-height: 40px !important;
+  resize: none !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6) !important;
+}
+
+body.desktop-mode .desktop-window.is-minimized > .window-body,
+body.desktop-mode .desktop-window.is-minimized > .win-resize-handle {
+  display: none !important;
+}
+
+/* Zmaksymalizowane okno */
+body.desktop-mode .desktop-window.is-maximized {
+  top: 12px !important;
+  left: 12px !important;
+  width: calc(100vw - 24px) !important;
+  height: calc(100vh - 128px) !important;
+  z-index: 900 !important;
+  border-radius: var(--radius-lg);
+}
+
+/* --- Uchwyty do zmiany rozmiaru okna myszą (Resizing) --- */
+.win-resize-handle {
+  display: none;
+  position: absolute;
+  user-select: none;
+  touch-action: none;
+  z-index: 20;
+}
+
+body.desktop-mode .desktop-window:not(.is-minimized):not(.is-maximized) .win-resize-handle {
+  display: block;
+}
+
+/* Narożnik prawy dolny */
+.win-resize-handle.handle-se {
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, rgba(99, 102, 241, 0.45) 50%);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+.win-resize-handle.handle-se:hover {
+  background: linear-gradient(135deg, transparent 40%, rgba(99, 102, 241, 0.85) 40%);
+}
+
+/* Krawędź prawa */
+.win-resize-handle.handle-e {
+  top: 40px;
+  right: 0;
+  width: 6px;
+  bottom: 18px;
+  cursor: ew-resize;
+}
+
+/* Krawędź dolna */
+.win-resize-handle.handle-s {
+  left: 0;
+  bottom: 0;
+  height: 6px;
+  right: 18px;
+  cursor: ns-resize;
+}
+
+/* --- Pasek zadań / Dock Pulpitu (Desktop Dock) --- */
+.desktop-dock {
+  display: none;
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(11, 16, 30, 0.88);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 40px;
+  padding: 5px 12px;
+  gap: 6px;
+  z-index: 950;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(99, 102, 241, 0.2);
+  align-items: center;
+  user-select: none;
+  animation: slideUpDock 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+body.desktop-mode .desktop-dock {
+  display: flex;
+}
+
+@keyframes slideUpDock {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.dock-item-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.dock-item-btn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.dock-item-btn.is-active {
+  background: rgba(99, 102, 241, 0.25);
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+.dock-item-btn.is-minimized {
+  opacity: 0.65;
+  border-style: dashed;
+}
+
+.dock-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  transition: all 0.2s ease;
+}
+
+.dock-item-btn.is-active .dock-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+.dock-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 4px;
+}
+
+.dock-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dock-action-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+
+/* --- Card Body & Titlebar Flush Positioning --- */
+.card.desktop-window {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.desktop-window > .window-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+#win-player > .window-body {
+  padding: 22px 26px;
+  gap: 18px;
+}
+
+#win-reader > .window-body {
+  padding: 0;
+  gap: 0;
+}
+
+#win-playlist > .window-body {
+  padding: 16px 20px;
+  height: 100%;
+}
+
+
+body.desktop-mode #win-playlist {
+  height: 520px;
+}
+
+body.desktop-mode #win-playlist .playlist-scroll {
+  flex: 1;
+  min-height: 180px;
+  overflow-y: auto;
+}
+
+/* W trybie siatki zakładki w sidebarze zachowują swoje przełączanie */
+body:not(.desktop-mode) .sidebar .tab-bar {
+  display: flex;
+}
+body.desktop-mode .sidebar .tab-bar {
+  display: none;
+}
+
+
+/* ==========================================================================
+   NOTATNIK DO NAUKI (LEARNING NOTEBOOK)
+   ========================================================================== */
+
+.notes-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+}
+
+.notes-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.notes-scope-group {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+}
+
+.notes-scope-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.notes-scope-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.notes-scope-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.notes-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.note-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.note-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.note-tool-btn.active {
+  background: rgba(99, 102, 241, 0.25);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.note-tool-btn.btn-save-note {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+.note-tool-btn.btn-save-note:hover {
+  background: rgba(16, 185, 129, 0.3);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.notes-content-wrap {
+  flex: 1;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.notes-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 240px;
+  background: rgba(8, 12, 22, 0.75);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  padding: 14px 16px;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.notes-textarea:focus {
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 14px var(--primary-glow);
+}
+
+.notes-preview {
+  flex: 1;
+  width: 100%;
+  min-height: 240px;
+  background: rgba(8, 12, 22, 0.75);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  overflow-y: auto;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.notes-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  padding: 2px 4px 0 4px;
+}
+
+#win-notes > .window-body {
+  padding: 14px 18px;
+  height: 100%;
+}
+
+body.desktop-mode #win-notes {
+  height: 480px;
+  width: 540px;
+}

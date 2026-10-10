@@ -1,0 +1,696 @@
+/* ==========================================================================
+   Lektor Pro - Mobile Responsive Stylesheet (Smartphones & Tablets <= 768px)
+   Optymalizacja UX/UI dla urządzeń dotykowych i telefonów komórkowych.
+   ========================================================================== */
+
+/* Ukryj elementy mobilne na desktopie */
+.mobile-bottom-nav,
+.mobile-mini-player,
+.notes-mobile-toggle {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  /* ==========================================================================
+     1. Reset & Globalne ustawienia mobilne
+     ========================================================================== */
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Zapobiegaj automatycznemu powiększaniu (iOS Safari zoom) przy focusie */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Zapewnij, że okna pulpitu ZAWSZE zachowują się jak normalne karty na telefonie */
+  .desktop-window {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    transform: none !important;
+    left: auto !important;
+    top: auto !important;
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  .window-drag-grip,
+  .win-resize-handle,
+  .layout-switcher {
+    display: none !important;
+  }
+
+  /* ==========================================================================
+     2. Kompaktowy nagłówek mobilny (Header)
+     ========================================================================== */
+  header {
+    padding: 10px 14px;
+    gap: 10px;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .brand {
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .brand-icon {
+    font-size: 1.4rem;
+  }
+
+  .brand-title {
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  .header-controls {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+
+  .jump-btn {
+    padding: 5px 8px;
+    font-size: 0.72rem;
+  }
+
+  .batch-btn-header {
+    padding: 5px 8px;
+    font-size: 0.72rem;
+  }
+
+  .batch-btn-header span:not(.stop-dot) {
+    display: none;
+  }
+
+  /* ==========================================================================
+     3. Układ główny (Main Content)
+     ========================================================================== */
+  main {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 12px 20px 12px;
+    gap: 14px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .content-area,
+  .sidebar {
+    display: contents; /* Karty są zarządzane przez przełącznik widoków */
+  }
+
+  /* Ukryj desktopowy pasek zakładek w sidebarze (zastępuje go dolny pasek) */
+  .sidebar > .tab-bar {
+    display: none !important;
+  }
+
+  /* Stylistyka kart na telefonie */
+  .card {
+    border-radius: var(--radius-md);
+    margin: 0;
+    width: 100%;
+  }
+
+  .window-titlebar {
+    padding: 10px 14px;
+  }
+
+  .window-title {
+    font-size: 0.85rem;
+  }
+
+  .window-controls {
+    display: none; /* Ukryj przyciski zwijania/maksymalizacji na telefonie */
+  }
+
+  .window-body {
+    padding: 14px;
+  }
+
+  /* ==========================================================================
+     4. Mobilny Odtwarzacz Audio (#win-player)
+     ========================================================================== */
+  .player-card .window-body {
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .page-badge {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+
+  .page-title {
+    font-size: 1.15rem;
+    line-height: 1.35;
+    margin-top: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .mode-toggles {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .mode-label {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 6px 4px;
+  }
+
+  /* Timeline & scrub bar */
+  .timeline-container {
+    padding: 4px 0;
+  }
+
+  .progress-bar-wrap {
+    height: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .time-display {
+    font-size: 0.78rem;
+    margin-top: 6px;
+  }
+
+  /* Przyciski sterowania */
+  .player-controls {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .primary-controls {
+    justify-content: center;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .ctrl-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+    border-radius: 50%;
+  }
+
+  .ctrl-btn.play-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    box-shadow: 0 0 20px var(--primary-glow);
+  }
+
+  .speed-selector {
+    justify-content: center;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .speed-btn {
+    flex: 1;
+    max-width: 65px;
+    padding: 6px 0;
+    font-size: 0.78rem;
+    text-align: center;
+  }
+
+  /* ==========================================================================
+     5. Mobilny Czytnik Markdown (#win-reader)
+     ========================================================================== */
+  .reader-card .window-body {
+    padding: 12px;
+  }
+
+  .reader-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding-bottom: 10px;
+  }
+
+  .reader-tabs {
+    width: 100%;
+    display: flex;
+  }
+
+  .reader-tab-btn {
+    flex: 1;
+    font-size: 0.75rem;
+    padding: 8px 6px;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .reader-meta {
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .reader-file-badge {
+    font-size: 0.72rem;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reader-tools {
+    gap: 6px;
+  }
+
+  .reader-tool-btn {
+    padding: 5px 9px;
+    font-size: 0.75rem;
+    min-height: 32px;
+  }
+
+  .reader-expand-btn {
+    display: none; /* Na telefonie czytnik i tak jest pełnoekranowy */
+  }
+
+  .markdown-view {
+    padding: 14px 12px;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    max-height: 68vh;
+  }
+
+  .markdown-view pre {
+    padding: 12px;
+    margin: 12px -4px;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .markdown-view code {
+    font-size: 0.82rem;
+  }
+
+  .markdown-view img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    margin: 10px 0;
+  }
+
+  .transcript-view {
+    max-height: 68vh;
+    padding: 10px;
+  }
+
+  /* ==========================================================================
+     6. Mobilny Notatnik (#win-notes)
+     ========================================================================== */
+  .notes-tab .window-body {
+    padding: 12px;
+  }
+
+  .notes-header-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .notes-scope-group {
+    width: 100%;
+  }
+
+  .notes-scope-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.75rem;
+    padding: 6px;
+  }
+
+  .notes-tools {
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Segmented Toggle Edytor / Podgląd na telefonie */
+  .notes-mobile-toggle {
+    display: flex !important;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .notes-mob-toggle-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .notes-mob-toggle-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+  }
+
+  .notes-content-wrap {
+    min-height: 320px;
+  }
+
+  /* Na telefonie ukrywamy podgląd lub edytor w zależności od trybu mobilnego */
+  body.notes-mob-preview-active .notes-textarea {
+    display: none !important;
+  }
+
+  body:not(.notes-mob-preview-active) .notes-preview {
+    display: none !important;
+  }
+
+  .notes-textarea,
+  .notes-preview {
+    width: 100% !important;
+    min-height: 320px !important;
+    max-height: 60vh !important;
+    font-size: 15px !important;
+  }
+
+  /* ==========================================================================
+     7. Mobilna Playlista / Spis Stron (#win-playlist)
+     ========================================================================== */
+  .playlist-tab .window-body {
+    padding: 12px;
+  }
+
+  .search-box {
+    height: 44px;
+    font-size: 16px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .playlist-scroll {
+    max-height: 70vh;
+  }
+
+  .page-item {
+    min-height: 52px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+  }
+
+  .page-item-title {
+    font-size: 0.88rem;
+  }
+
+  /* ==========================================================================
+     8. Generator (#win-progress)
+     ========================================================================== */
+  .gen-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+
+  .gen-stat-item {
+    padding: 8px 10px;
+  }
+
+  .gen-stat-val {
+    font-size: 0.85rem;
+  }
+
+  .gen-actions-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .batch-btn {
+    width: 100%;
+    min-height: 44px;
+    font-size: 0.85rem;
+    justify-content: center;
+  }
+
+  .setting-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .slider-wrap {
+    width: 100%;
+  }
+
+  input[type="range"] {
+    height: 8px;
+    padding: 6px 0;
+  }
+
+  /* ==========================================================================
+     9. Mobilny Dolny Pasek Nawigacyjny (.mobile-bottom-nav)
+     ========================================================================== */
+  .mobile-bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding: 4px 8px env(safe-area-inset-bottom, 4px) 8px;
+    background: rgba(11, 15, 25, 0.96);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border-subtle);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 6px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    user-select: none;
+  }
+
+  .mobile-nav-item:active {
+    transform: scale(0.92);
+  }
+
+  .mobile-nav-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+
+  .mobile-nav-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .mobile-nav-item.active {
+    color: #ffffff;
+  }
+
+  .mobile-nav-item.active .mobile-nav-icon {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 8px var(--primary-glow));
+  }
+
+  .mobile-nav-item.active .mobile-nav-label {
+    color: var(--primary);
+  }
+
+  /* ==========================================================================
+     10. Mobilny Pływający Mini-Odtwarzacz (.mobile-mini-player)
+     ========================================================================== */
+  .mobile-mini-player {
+    display: flex !important;
+    position: fixed;
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+    left: 10px;
+    right: 10px;
+    z-index: 999;
+    height: 52px;
+    background: rgba(18, 24, 40, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(99, 102, 241, 0.2);
+    align-items: center;
+    padding: 0 12px;
+    gap: 10px;
+    cursor: pointer;
+    overflow: hidden;
+    animation: slideUpMini 0.25s ease-out;
+  }
+
+  @keyframes slideUpMini {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .mini-progress-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .mini-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), #38bdf8);
+    transition: width 0.1s linear;
+  }
+
+  .mini-play-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #ffffff;
+    border: none;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px var(--primary-glow);
+  }
+
+  .mini-info-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .mini-page-badge {
+    font-size: 0.65rem;
+    color: var(--primary);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .mini-title {
+    font-size: 0.8rem;
+    color: var(--text-main);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mini-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+
+  .mini-expand-icon {
+    color: var(--text-dim);
+    font-size: 1rem;
+    padding-left: 4px;
+    flex-shrink: 0;
+  }
+
+  /* ==========================================================================
+     11. Filtrowanie kart wg aktywnego widoku mobilnego
+     ========================================================================== */
+  body[data-mobile-view="player"] #win-reader,
+  body[data-mobile-view="player"] #win-playlist,
+  body[data-mobile-view="player"] #win-notes,
+  body[data-mobile-view="player"] #win-progress {
+    display: none !important;
+  }
+
+  body[data-mobile-view="reader"] #win-player,
+  body[data-mobile-view="reader"] #win-playlist,
+  body[data-mobile-view="reader"] #win-notes,
+  body[data-mobile-view="reader"] #win-progress {
+    display: none !important;
+  }
+
+  body[data-mobile-view="playlist"] #win-player,
+  body[data-mobile-view="playlist"] #win-reader,
+  body[data-mobile-view="playlist"] #win-notes,
+  body[data-mobile-view="playlist"] #win-progress {
+    display: none !important;
+  }
+
+  body[data-mobile-view="notes"] #win-player,
+  body[data-mobile-view="notes"] #win-reader,
+  body[data-mobile-view="notes"] #win-playlist,
+  body[data-mobile-view="notes"] #win-progress {
+    display: none !important;
+  }
+
+  body[data-mobile-view="settings"] #win-player,
+  body[data-mobile-view="settings"] #win-reader,
+  body[data-mobile-view="settings"] #win-playlist,
+  body[data-mobile-view="settings"] #win-notes {
+    display: none !important;
+  }
+
+  /* Na widoku "player" ukryj mini odtwarzacz, bo główny odtwarzacz jest na wierzchu! */
+  body[data-mobile-view="player"] .mobile-mini-player {
+    display: none !important;
+  }
+}

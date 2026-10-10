@@ -1,0 +1,37 @@
+<!-- Mobilny Mini-Odtwarzacz (pływający pasek nad nawigacją) -->
+<div class="mobile-mini-player" id="mobileMiniPlayer" style="display: none;">
+    <div class="mini-progress-track">
+        <div class="mini-progress-fill" id="mobMiniProgressFill"></div>
+    </div>
+    <button class="mini-play-btn" id="mobMiniPlayBtn" title="Odtwórz / Pauza">▶</button>
+    <div class="mini-info-wrap">
+        <span class="mini-page-badge" id="mobMiniBadge">STRONA 000</span>
+        <span class="mini-title" id="mobMiniTitle">Wybierz stronę...</span>
+    </div>
+    <span class="mini-time" id="mobMiniTime">00:00 / 00:00</span>
+    <span class="mini-expand-icon">▲</span>
+</div>
+
+<!-- Mobilny Dolny Pasek Nawigacyjny -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <button class="mobile-nav-item active" data-view="player" id="mobNavPlayer" title="Odtwarzacz" data-i18n-title="dock.player">
+        <span class="mobile-nav-icon">🎧</span>
+        <span class="mobile-nav-label"><span data-i18n="dock.player">Odtwarzacz</span></span>
+    </button>
+    <button class="mobile-nav-item" data-view="reader" id="mobNavReader" title="Czytnik Markdown" data-i18n-title="dock.reader">
+        <span class="mobile-nav-icon">📖</span>
+        <span class="mobile-nav-label"><span data-i18n="dock.reader">Czytnik</span></span>
+    </button>
+    <button class="mobile-nav-item" data-view="playlist" id="mobNavPlaylist" title="Spis stron" data-i18n-title="dock.playlist">
+        <span class="mobile-nav-icon">📚</span>
+        <span class="mobile-nav-label"><span data-i18n="dock.playlist">Spis stron</span></span>
+    </button>
+    <button class="mobile-nav-item" data-view="notes" id="mobNavNotes" title="Notatnik" data-i18n-title="dock.notes">
+        <span class="mobile-nav-icon">📝</span>
+        <span class="mobile-nav-label"><span data-i18n="dock.notes">Notatki</span></span>
+    </button>
+    <button class="mobile-nav-item" data-view="settings" id="mobNavSettings" title="Parametry & Generator" data-i18n-title="dock.generator">
+        <span class="mobile-nav-icon">⚙️</span>
+        <span class="mobile-nav-label"><span data-i18n="dock.more">Więcej</span></span>
+    </button>
+</nav>

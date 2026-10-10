@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="meta.titleStudio">Studio TTS Markdown — Synteza Mowy AI | Lektor Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <!-- Modularne arkusze stylów CSS -->
+  <link rel="stylesheet" href="/static/css/variables.css">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/layout.css?v=20261009-nav-colors">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/studio.css?v=20261009-language-select">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎙️</text></svg>">
+</head>
+
+<body class="studio-body">
+
+  <!-- GLOBAL TOP NAVBAR -->
+  <nav class="global-nav">
+    <a href="/" class="global-brand">
+      <span class="global-brand-logo">🎙️</span>
+      <span>Lektor Pro</span>
+      <span class="global-brand-badge" data-i18n="nav.studio">Studio TTS</span>
+    </a>
+
+    <div class="global-nav-actions">
+    <div class="app-switcher">
+      <a href="/" class="app-btn" id="navAudiobook" title="Odtwarzacz Audiobooka i Czytnik Stron" data-i18n-title="nav.audiobookTitle">
+        <span class="btn-icon">📚</span>
+        <span class="btn-label" data-i18n="nav.audiobook">Audiobook</span>
+      </a>
+      <a href="/studio" class="app-btn active" id="navStudio" title="Generator Mowy z Kodu i Tekstu Markdown" data-i18n-title="nav.studioTitle">
+        <span class="btn-icon">📝</span>
+        <span class="btn-label" data-i18n="nav.studio">Studio TTS</span>
+      </a>
+    </div>
+    {% include "partials/locale_switcher.html" %}
+    </div>
+  </nav>
+
+  <!-- MAIN STUDIO CONTAINER -->
+  <div class="studio-wrapper">
+
+    <!-- PAGE HEADER -->
+    <header class="studio-header">
+      <div class="header-left">
+        <div class="header-title-row">
+          <span class="header-icon">🎙️</span>
+          <h1 data-i18n="studio.title">Studio Syntezy Mowy Markdown</h1>
+          <span class="badge badge-accent" data-i18n="studio.model">Model AI OmniVoice</span>
+        </div>
+        <p class="header-subtitle" data-i18n="studio.subtitle">Wklej kod lub treść w Markdown, a model AI wygeneruje naturalną mowę lektora z inteligentnym czytaniem kodu, terminologii IT i pauz.</p>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-pill" title="Status silnika AI na karcie graficznej GPU">
+          <span class="pill-dot dot-online"></span>
+          <div class="pill-text">
+            <span class="pill-val" data-i18n="studio.gpuActive">GPU Aktywne</span>
+            <span class="pill-lbl" data-i18n="studio.cudaCores">CUDA Cores</span>
+          </div>
+        </div>
+
+        <div class="stat-pill" title="Liczba wygenerowanych i zachowanych plików audio na dysku">
+          <span class="pill-icon">💾</span>
+          <div class="pill-text">
+            <span class="pill-val" id="statDiskCount">0 <span data-i18n="studio.savedCount">nagrań</span></span>
+            <span class="pill-lbl" data-i18n="studio.savedAudio">Zapisane na dysku</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- STUDIO GRID LAYOUT -->
+    <main class="studio-grid">
+
+      <!-- LEFT COLUMN: EDITOR & SETTINGS -->
+      <section class="studio-editor-column">
+
+        <!-- EDITOR CARD -->
+        <div class="studio-card editor-card">
+          <div class="card-header">
+            <div class="title-input-wrapper">
+              <span class="input-icon">🏷️</span>
+              <input type="text" id="studioTitleInput" class="studio-input"
+                placeholder="Tytuł nagrania (np. Architektura Mikroserwisów)..." data-i18n-placeholder="studio.titlePlaceholder" maxlength="100">
+              <button type="button" class="btn-icon-action" id="btnAutoTitle"
+                title="Wygeneruj tytuł automatycznie z pierwszego nagłówka Markdown" data-i18n-title="studio.autoTitleTitle">
+                <span>🪄</span>
+                <span data-i18n="studio.autoTitle">Auto-tytuł</span>
+              </button>
+            </div>
+
+            <div class="header-right-tools">
+              <select id="presetSelector" class="studio-select" title="Załaduj gotowy szablon techniczny" data-i18n-title="studio.loadTemplate">
+                <option value="" data-i18n="studio.loadTemplate">💡 Załaduj gotowy szablon...</option>
+                <option value="cloud_native" data-i18n="studio.cloudTemplate">☁️ Architektura Cloud Native & K8s</option>
+                <option value="go_concurrency" data-i18n="studio.goTemplate">🐹 Współbieżność Go (Goroutines)</option>
+                <option value="distributed_cache" data-i18n="studio.redisTemplate">⚡ Distributed Caching & Redis</option>
+                <option value="blank" data-i18n="studio.blankTemplate">📄 Czysty edytor</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- MARKDOWN TOOLBAR -->
+          <div class="markdown-toolbar">
+            <div class="toolbar-group">
+              <button type="button" class="tool-btn" data-action="h1" title="Nagłówek 1 (#)" data-i18n-title="studio.heading1">H1</button>
+              <button type="button" class="tool-btn" data-action="h2" title="Nagłówek 2 (##)" data-i18n-title="studio.heading2">H2</button>
+              <button type="button" class="tool-btn" data-action="bold"
+                title="Pogrubienie (**)" data-i18n-title="studio.bold"><strong>B</strong></button>
+              <button type="button" class="tool-btn" data-action="italic" title="Kursywa (*)" data-i18n-title="studio.italic"><em>I</em></button>
+              <button type="button" class="tool-btn" data-action="inline-code" title="Kod inline (`kod`)" data-i18n-title="studio.inlineCode">`kod`</button>
+              <button type="button" class="tool-btn" data-action="code-block"
+                title="Blok kodu (```go)" data-i18n-title="studio.codeBlock">```kod```</button>
+              <button type="button" class="tool-btn" data-action="list" title="Lista punktowana (- )" data-i18n-title="studio.list"><span data-i18n="studio.list">• Lista</span></button>
+              <button type="button" class="tool-btn" data-action="quote" title="Cytat (> )" data-i18n-title="studio.quote"><span data-i18n="studio.quote">” Cytat</span></button>
+            </div>
+
+            <div class="toolbar-tabs">
+              <button type="button" class="tab-btn active" data-tab="editor" id="tabEditor"><span data-i18n="studio.editor">✏️ Edytor</span></button>
+              <button type="button" class="tab-btn" data-tab="preview" id="tabPreview"><span data-i18n="studio.preview">👁️ Podgląd HTML</span></button>
+              <button type="button" class="tab-btn" data-tab="speech" id="tabSpeech"><span data-i18n="studio.speechSegments">🔊 Segmenty Lektora</span></button>
+            </div>
+          </div>
+
+          <!-- EDITOR WORKSPACE: EDIT / PREVIEW / SPEECH -->
+          <div class="editor-workspace">
+            <div class="tab-content active" id="paneEditor">
+              <textarea id="markdownInput" class="studio-textarea"
+                placeholder="Wklej tutaj treść w formacie Markdown z kodem, nagłówkami i listami..." data-i18n-placeholder="studio.markdownPlaceholder"
+                spellcheck="false"></textarea>
+            </div>
+
+            <div class="tab-content" id="panePreview">
+              <div class="markdown-preview-box" id="markdownPreviewBox">
+                <p class="preview-placeholder">Wpisz tekst w edytorze, aby zobaczyć podgląd sformatowanego dokumentu.
+                </p>
+              </div>
+            </div>
+
+            <div class="tab-content" id="paneSpeech">
+              <div class="speech-preview-box" id="speechPreviewBox">
+                <p class="preview-placeholder">Kliknij ten podgląd, aby zobaczyć jak silnik normalizacji podzieli
+                  Markdown na wypowiedzi z pauzami i akcentem językowym.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- EDITOR FOOTER METRICS -->
+          <div class="editor-footer">
+            <div class="metrics-row">
+              <span class="metric-item"><strong id="metricChars">0</strong> znaków</span>
+              <span class="metric-separator">•</span>
+              <span class="metric-item"><strong id="metricWords">0</strong> słów</span>
+              <span class="metric-separator">•</span>
+              <span class="metric-item" title="Szacowany czas czytania na podstawie tempa lektora" data-i18n-title="studio.estimatedTime">⏱️ <span data-i18n="studio.estimatedTime">szacowany czas:</span>
+                <strong id="metricEstTime">0:00</strong></span>
+            </div>
+
+            <div class="footer-actions">
+              <button type="button" class="btn-text-action" id="btnClearText" title="Wyczyść zawartość edytora" data-i18n-title="studio.clear">🗑️
+                <span data-i18n="studio.clear">Wyczyść</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VOICE & SYNTHESIS CONTROLS CARD -->
+        <div class="studio-card settings-card">
+          <div class="card-subtitle">
+            <span>⚙️</span>
+            <h3 data-i18n="studio.settingsTitle">Konfiguracja Syntezy &amp; Głos AI</h3>
+          </div>
+
+          <div class="settings-grid">
+            <div class="setting-field">
+              <label class="setting-label">
+                <span data-i18n="studio.languages">🌐 Języki lektora:</span>
+                <span class="badge badge-subtle" id="langBadgeDesc" data-i18n="studio.bilingual">Polski + Angielski</span>
+              </label>
+              <div class="language-selectors" id="languageSelectors">
+                <label class="language-select-field">
+                  <span data-i18n="studio.primaryLanguage">Język główny</span>
+                  <select id="primaryLanguage" name="primaryLanguage">
+                    <option value="pl" selected>&#x1F1F5;&#x1F1F1; J&#281;zyk polski (Polish)</option>
+                    <option value="__custom__">&#x1F310; Inny j&#281;zyk (wpisz kod lub nazw&#281;)&#x2026;</option>
+                  </select>
+                  <input id="primaryLanguageCustom" class="language-custom-input" type="text"
+                         placeholder="Kod OmniVoice, np. kbt" data-i18n-placeholder="studio.customLanguagePlaceholder" autocomplete="off" hidden>
+                </label>
+                <label class="language-select-field">
+                  <span>J&#281;zyk dodatkowy</span>
+                  <select id="secondaryLanguage" name="secondaryLanguage">
+                    <option value="en" selected>&#x1F1EC;&#x1F1E7; J&#281;zyk angielski (English)</option>
+                    <option value="none">Bez j&#281;zyka dodatkowego</option>
+                    <option value="__custom__">&#x1F310; Inny j&#281;zyk (wpisz kod lub nazw&#281;)&#x2026;</option>
+                  </select>
+                  <input id="secondaryLanguageCustom" class="language-custom-input" type="text"
+                         placeholder="Kod OmniVoice, np. kbt" data-i18n-placeholder="studio.customLanguagePlaceholder" autocomplete="off" hidden>
+                </label>
+              </div>
+              <span class="language-selection-hint" id="languageSelectionHint" data-i18n="studio.languageHint">Tekst główny będzie czytany po polsku, a rozpoznane terminy po angielsku.</span>
+            </div>
+
+            <div class="setting-field">
+              <label class="setting-label">
+                <span data-i18n="studio.speed">⚡ Domyślne tempo lektora:</span>
+              </label>
+              <div class="speed-selector-pills" id="baseSpeedGroup">
+                <button type="button" class="speed-pill" data-speed="0.70"><span data-i18n="studio.verySlow">0.70x (Bardzo wolno)</span></button>
+                <button type="button" class="speed-pill" data-speed="0.85"><span data-i18n="studio.calm">0.85x (Spokojne)</span></button>
+                <button type="button" class="speed-pill active" data-speed="1.00"><span data-i18n="studio.natural">1.00x (Naturalne)</span></button>
+                <button type="button" class="speed-pill" data-speed="1.15"><span data-i18n="studio.fast">1.15x (Szybkie)</span></button>
+              </div>
+            </div>
+          </div>
+
+          <details class="advanced-accordion">
+            <summary class="accordion-summary">
+              <span data-i18n="studio.advanced">🎛️ Zaawansowane parametry modelu AI (Temperature, CFG, Emocje)</span>
+              <span class="accordion-arrow">▼</span>
+            </summary>
+            <div class="accordion-content">
+              <div class="slider-row">
+                <div class="slider-header">
+                  <span data-i18n="studio.temperature">Temperatura głosu (Temperature):</span>
+                  <span class="slider-val" id="valTemp">0.33</span>
+                </div>
+                <input type="range" id="paramTemp" min="0.1" max="0.9" step="0.05" value="0.33" class="studio-range">
+                <span class="slider-hint">Niższa = maksymalna powtarzalność i spokój, Wyższa = większa wariacja
+                  intonacji.</span>
+              </div>
+
+              <div class="slider-row">
+                <div class="slider-header">
+                  <span data-i18n="studio.cfg">Wierność wzorca głosu (CFG Weight):</span>
+                  <span class="slider-val" id="valCfg">0.68</span>
+                </div>
+                <input type="range" id="paramCfg" min="0.2" max="1.2" step="0.05" value="0.68" class="studio-range">
+                <span class="slider-hint">Siła dopasowania do profilu brzmieniowego audio.wav.</span>
+              </div>
+
+              <div class="slider-row">
+                <div class="slider-header">
+                  <span data-i18n="studio.emotion">Ekspresja / Emocje (Exaggeration):</span>
+                  <span class="slider-val" id="valExag">0.25</span>
+                </div>
+                <input type="range" id="paramExag" min="0.0" max="0.6" step="0.05" value="0.25" class="studio-range">
+                <span class="slider-hint">Ekspresyjność dynamiki wypowiedzi technicznej.</span>
+              </div>
+            </div>
+          </details>
+
+          <div class="synthesis-action-bar">
+            <button type="button" class="btn-synthesize" id="btnSynthesize">
+              <span class="btn-synth-icon" id="btnSynthIcon">⚡</span>
+              <span class="btn-synth-text" id="btnSynthText" data-i18n="studio.generate">Generuj Mowę AI (TTS)</span>
+              <span class="btn-synth-hotkey">Ctrl + Enter</span>
+            </button>
+
+            <div class="synth-status" id="synthStatus">
+              <span class="status-indicator ready" id="statusDot"></span>
+              <span class="status-message" id="statusMsg" data-i18n="studio.ready">Gotowy do generowania</span>
+            </div>
+          </div>
+          <div class="synth-stats" id="synthStats" hidden aria-live="polite">
+            <div class="synth-stats-header">
+              <span data-i18n="studio.stats">📊 Statystyki syntezy</span>
+              <span class="synth-stats-state" id="synthStatsState" data-i18n="studio.waiting">Oczekiwanie na rozpoczęcie</span>
+            </div>
+            <div class="synth-stats-grid">
+              <div class="synth-stat">
+                <span data-i18n="studio.synthesisTime">⏱️ Czas syntezy</span>
+                <strong id="statSynthElapsed">--</strong>
+              </div>
+              <div class="synth-stat">
+                <span data-i18n="studio.averageSynthesis">📈 Średni czas syntezy</span>
+                <strong id="statSynthAverage">--</strong>
+              </div>
+              <div class="synth-stat">
+                <span data-i18n="converter.vram">💾 Pamięć VRAM</span>
+                <strong id="statSynthVram">-- / -- GB</strong>
+              </div>
+              <div class="synth-stat">
+                <span data-i18n="converter.gpu">⚡ Obciążenie GPU</span>
+                <strong id="statSynthGpu">--</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: PLAYER & SAVED HISTORY -->
+      <section class="studio-sidebar-column">
+        <div class="studio-card player-card" id="playerCard">
+          <div class="player-card-header">
+            <div class="now-playing-badge">
+              <span class="pulse-ring"></span>
+              <span data-i18n="studio.player">ODTWARZACZ AUDIO</span>
+            </div>
+            <span class="player-format-tag" data-i18n="studio.playerFormat">WAV 24kHz PCM</span>
+          </div>
+
+          <div class="player-track-info">
+            <h2 class="player-track-title" id="playerTitle" data-i18n="studio.noRecording">Brak aktywnego nagrania</h2>
+            <div class="player-track-meta" id="playerMeta">
+              <span class="meta-tag" id="metaLang">🌐 PL+EN</span>
+              <span class="meta-tag" id="metaDuration">⏱️ 0:00</span>
+              <span class="meta-tag" id="metaSize">💾 0 KB</span>
+              <span class="meta-tag" id="metaDate">📅 Teraz</span>
+            </div>
+          </div>
+
+          <div class="visualizer-container" id="visualizer">
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+          </div>
+
+          <div class="player-timeline">
+            <div class="time-display">
+              <span id="playerCurTime">00:00</span>
+              <span id="playerTotalTime">00:00</span>
+            </div>
+            <div class="timeline-bar-wrapper" id="timelineWrapper">
+              <div class="timeline-bar-bg"></div>
+              <div class="timeline-bar-fill" id="timelineFill"></div>
+              <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="100" value="0" step="0.1">
+            </div>
+          </div>
+
+          <div class="player-controls">
+            <button type="button" class="btn-ctrl" id="btnSkipBack" title="Cofnij o 5 sekund (Strzałka w lewo)" data-i18n-title="studio.skipBackTitle">
+              <span>⏪ 5s</span>
+            </button>
+
+            <button type="button" class="btn-play-pause" id="btnPlayPause" title="Odtwórz / Wstrzymaj (Spacja)" data-i18n-title="studio.playPauseTitle">
+              <span id="playIcon">▶️</span>
+            </button>
+
+            <button type="button" class="btn-ctrl" id="btnSkipForward"
+              title="Przewiń o 5 sekund w przód (Strzałka w prawo)" data-i18n-title="studio.skipForwardTitle">
+              <span>5s ⏩</span>
+            </button>
+
+            <button type="button" class="btn-ctrl-icon" id="btnLoop" title="Włącz zapętlenie odtwarzania" data-i18n-title="studio.loopTitle">
+              <span>🔁</span>
+            </button>
+          </div>
+
+          <div class="player-speed-row">
+            <span class="speed-label" data-i18n="studio.speedLabel">Szybkość:</span>
+            <div class="player-speeds" id="playerSpeeds">
+              <button type="button" class="p-speed-btn" data-speed="0.7">0.7x</button>
+              <button type="button" class="p-speed-btn" data-speed="0.85">0.85x</button>
+              <button type="button" class="p-speed-btn active" data-speed="1.0">1.0x</button>
+              <button type="button" class="p-speed-btn" data-speed="1.15">1.15x</button>
+              <button type="button" class="p-speed-btn" data-speed="1.25">1.25x</button>
+            </div>
+          </div>
+
+          <div class="player-extra-row">
+            <div class="volume-control">
+              <button type="button" class="btn-vol" id="btnMute" title="Wycisz dźwięk" data-i18n-title="studio.muteTitle">🔊</button>
+              <input type="range" id="volSlider" class="vol-slider" min="0" max="1" step="0.05" value="1">
+            </div>
+
+            <div class="player-card-actions">
+              <button type="button" class="btn-player-action" id="btnRegenCurrent"
+                title="Wygeneruj ponownie to nagranie przez model AI" data-i18n-title="studio.regenerateTitle">
+                <span data-i18n="studio.regenerate">🔄 Regeneruj</span>
+              </button>
+              <a href="#" class="btn-player-action btn-download" id="btnDownload" download="audio.wav"
+                title="Pobierz plik WAV na swój komputer" data-i18n-title="studio.downloadTitle">
+                <span data-i18n="studio.download">⬇️ Pobierz WAV</span>
+              </a>
+            </div>
+          </div>
+
+          <audio id="audioElement" preload="metadata"></audio>
+        </div>
+
+        <div class="studio-card history-card">
+          <div class="history-card-header">
+            <div class="history-title-box">
+              <span class="history-icon">💾</span>
+              <h3 data-i18n="studio.history">Historia Nagrań na Dysku</h3>
+              <span class="badge badge-count" id="historyCount">0</span>
+            </div>
+
+            <button type="button" class="btn-icon-refresh" id="btnRefreshHistory" title="Odśwież listę plików z dysku" data-i18n-title="studio.refreshHistory">
+              <span>🔄</span>
+            </button>
+          </div>
+
+          <div class="history-search-row">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="historySearchInput" class="history-search-input"
+              placeholder="Szukaj po tytule lub treści..." data-i18n-placeholder="studio.searchHistory">
+          </div>
+
+          <div class="history-list" id="historyList">
+            <div class="history-empty" id="historyEmpty">
+              <span class="empty-icon">📁</span>
+              <p data-i18n="studio.historyEmpty">Brak wygenerowanych nagrań na dysku.</p>
+              <small data-i18n="studio.historyEmptyHint">Wklej Markdown i kliknij "Generuj Mowę AI", aby stworzyć pierwsze nagranie audio.</small>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="modal-backdrop" id="deleteModalBackdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <span class="modal-icon">⚠️</span>
+        <h3 data-i18n="studio.deleteTitle">Usunąć nagranie z dysku?</h3>
+      </div>
+      <p class="modal-body" id="deleteModalText">
+        <span data-i18n="studio.deleteDescription">Plik audio WAV zostanie trwale usunięty z dysku.</span>
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-cancel" id="btnCancelDelete" data-i18n="common.cancel">Anuluj</button>
+        <button type="button" class="btn-modal-confirm" id="btnConfirmDelete">🗑️ <span data-i18n="studio.deleteConfirm">Tak, usuń z dysku</span></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/marked.min.js"></script>
+  <script type="module" src="/static/js/i18n.js?v=20261009-i18n"></script>
+  <script src="/static/js/studio.js?v=20261009-i18n"></script>
+
+</body>
+
+</html>

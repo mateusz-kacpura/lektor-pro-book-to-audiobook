@@ -1,0 +1,13 @@
+[importlinter]
+root_package = lektor
+
+[importlinter:contract:clean-architecture-layers]
+name = Clean Architecture Layer Dependencies
+type = layers
+layers =
+    infrastructure
+    adapters
+    application
+    domain
+containers =
+    lektor
